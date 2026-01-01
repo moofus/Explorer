@@ -21,6 +21,7 @@ final actor ExplorerSource {
     case error(Error)
   }
 
+  @Injected(\.aiManager) var aiManager: AIManager
   @Injected(\.locationManager) var locationManager: LocationManager
 
   private let continuation: AsyncStream<State>.Continuation
@@ -35,7 +36,7 @@ final actor ExplorerSource {
   }
 }
 
-// MARK: - Private Methods
+// MARK: - Private Location Methods
 extension ExplorerSource {
   private func handle(error: LocalizedError) async {
     let error = Error(
@@ -50,7 +51,7 @@ extension ExplorerSource {
       do {
         let mapItems = try await request.mapItems
         print("items=")
-        for item in mapItems {
+        if let item = mapItems.first {
           print(item)
           print("city=\(item.addressRepresentations?.cityName ?? "home")")
           print("cityWithContext=\(item.addressRepresentations?.cityWithContext ?? "City, State")")
@@ -79,7 +80,7 @@ extension ExplorerSource {
 }
 
 extension ExplorerSource {
-  func findActivities() async {
+  func searchCurrentLocation() async {
     print("starting")
     await locationManager.start()
     print("sleeping end")

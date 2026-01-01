@@ -17,10 +17,18 @@ import MapKit
 import SwiftUI
 
 struct ExplorerView: View {
+  enum FindKind: String, CaseIterable, Identifiable {
+    case explore
+    case todo
+
+    var id: Self { self }
+  }
+
   @Injected(\.explorerSource) var source: ExplorerSource
   @Injected(\.explorerViewModel) var viewModel: ExplorerViewModel
 
-  @State var item: MKMapItem?
+  @State private var item: MKMapItem?
+  @State private var findKind = FindKind.explore
 
   var body: some View {
     @Bindable var viewModel = viewModel
@@ -28,18 +36,12 @@ struct ExplorerView: View {
     NavigationSplitView {
       VStack {
         HeaderView()
-        ZStack {
-          Map() {
-            if let item {
-              Marker(item: item)
-            }
-          }
-          .aspectRatio(1.0, contentMode: .fit)
-          .clipShape(RoundedRectangle(cornerRadius: 30))
-          .mapControlVisibility(.hidden)
+
+        MyMapView(item: item)
+        .overlay {
           FindActivitiesButton(text: "Search Current Location") {
             Task {
-              await source.findActivities()
+              await source.searchCurrentLocation()
             }
           }
         }
@@ -50,13 +52,10 @@ struct ExplorerView: View {
         .padding(.top)
 
         Spacer()
-      }      .safeAreaPadding([.leading, .trailing])
+      }
+      .safeAreaPadding([.leading, .trailing])
     } detail: {
-      Image(systemName: "globe")
-        .imageScale(.large)
-        .foregroundStyle(.tint)
-      Text("Detail")
-        .navigationTitle("Explorer")
+      DetailView()
     }
     .alert(viewModel.errorDescription, isPresented: $viewModel.haveError, presenting: viewModel) {  viewModel in
       Button("OK") {}
@@ -64,34 +63,57 @@ struct ExplorerView: View {
       Text(viewModel.errorRecoverySuggestion)
     }
   }
+}
 
-  struct HeaderView: View {
-    var body: some View {
+struct DetailView: View {
+  var body: some View {
+    Image(systemName: "globe")
+      .imageScale(.large)
+      .foregroundStyle(.tint)
+    Text("Detail")
+      .navigationTitle("Explorer")
+  }
+}
+
+struct HeaderView: View {
+  var body: some View {
+
+    VStack(spacing: 10) {
+      Text("Moofuslist")
+        .font(.system(size: 42, weight: .bold, design: .serif))
+        .foregroundColor(.accent)
+
       Text("Where will you explore today?")
-        .font(.title2)
-//        .fontWeight(.semibold)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-          ToolbarItem(placement: .navigationBarLeading) {
-            Text("Explorer")
-              .font(.system(size: 40))
-              .bold()
-              .foregroundColor(.accent)
-              .fixedSize()
-          }
-          .sharedBackgroundVisibility(.hidden)
-
-          ToolbarItem {
-            Button {
-              print("pushed profile")
-            } label: {
-              Image(systemName: "person.fill")
-                .foregroundStyle(.accent)
-            }
-          }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .font(.headline)
+        .foregroundColor(.secondary)
+        .padding(.bottom)
     }
+    //        .padding(.top, 60)
+    .toolbar {
+      ToolbarItem {
+        Button {
+          print("pushed profile")
+        } label: {
+          Image(systemName: "person.fill")
+            .foregroundStyle(.accent)
+        }
+      }
+    }
+    .toolbarTitleDisplayMode(.inline)
+  }
+}
+
+struct MyMapView: View {
+  let item: MKMapItem?
+  var body: some View {
+    Map() {
+      if let item {
+        Marker(item: item)
+      }
+    }
+    .aspectRatio(1.0, contentMode: .fit)
+    .clipShape(RoundedRectangle(cornerRadius: 30))
+    .mapControlVisibility(.hidden)
   }
 }
 

@@ -20,6 +20,9 @@ struct ExplorerApp: App {
 }
 
 extension Container {
+  var aiManager: Factory<AIManager> {
+    self { AIManager() }.singleton
+  }
   var locationManager: Factory<LocationManager> {
     self { LocationManager() }.singleton
   }
