@@ -18,8 +18,10 @@ final actor ExplorerSource {
   }
 
   enum State {
-    case initial
     case error(SourceError)
+    case initial
+    case loaded([AIManager.Item])
+    case loading
   }
 
   @Injected(\.aiManager) var aiManager: AIManager
@@ -65,13 +67,10 @@ extension ExplorerSource {
           print("region=\(item.addressRepresentations?.region ?? "Country")")
           if let cityState = item.addressRepresentations?.cityWithContext {
             do {
-              let instructions = """
-                              Your job is to find activities to do and places to go in Oakland California.
-                              
-                              Always include a short description, and something interesting about the activity or place.
-                              """
-
-              let list = try await aiManager.getItems()
+              continuation.yield(.loading)
+              let list = try await aiManager.getItems(cityState: cityState)
+              print("list=\(list)")
+              continuation.yield(.loaded(list))
             } catch {
               print(error)
               if let error = error as? AIManager.Error {

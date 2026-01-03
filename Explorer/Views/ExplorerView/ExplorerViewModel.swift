@@ -38,6 +38,10 @@ class ExplorerViewModel {
         haveError = true
       case .initial:
         break
+      case .loaded(_):
+        print("loaded")
+      case .loading:
+        print("loading")
       }
     }
   }
