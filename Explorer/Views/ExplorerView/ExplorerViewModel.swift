@@ -27,8 +27,14 @@ class ExplorerViewModel {
     for await state in source.stream {
       switch state {
       case .error(let error):
-        errorDescription = error.errorDescription ?? "Error"
-        errorRecoverySuggestion = error.recoverySuggestion ?? "Try again later."
+        if case let .location(description, recoverySuggestion) = error {
+          errorDescription = description ?? "Error"
+          errorRecoverySuggestion = recoverySuggestion ?? "Try again later."
+        } else {
+          // unknown error
+          errorDescription = error.localizedDescription
+          errorRecoverySuggestion = ""
+        }
         haveError = true
       case .initial:
         break

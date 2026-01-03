@@ -5,23 +5,65 @@
 //  Created by Lamar Williams III on 12/31/25.
 //
 
+import CoreLocation
 import Foundation
 import FoundationModels
+import MapKit
+import os
 
 actor AIManager {
+  enum Error: LocalizedError {
+    case appleIntelligenceNotEnabled
+    case deviceNotEligible
+    case location
+    case model(String)
+    case modelNotReady
+
+    var failureReason: String? {
+      switch self {
+      case .appleIntelligenceNotEnabled: "Apple Intelligence is not enabled in Settings."
+      case .deviceNotEligible: "The model is not available on this device."
+      case .location: "Explorer can't access your location. Do you have Parental Controls enabled?"
+      case .model(let errorString): "The model is unavailable: \(errorString)"
+      case .modelNotReady: "The model is not available on this device."
+      }
+    }
+
+    var errorDescription: String? {
+      "Can't get location."
+    }
+
+    var recoverySuggestion: String? {
+      switch self {
+      case .appleIntelligenceNotEnabled: "Apple Intelligence is not enabled in Settings."
+      case .deviceNotEligible: "The model is not available on this device."
+      case .location: "Explorer can't access your location. Do you have Parental Controls enabled?"
+      case .model: "The model is unavailable"
+      case .modelNotReady: "The model is not available on this device."
+      }
+    }
+  }
+
+  enum Items {
+    case error(String)
+    case items([Item])
+  }
+
+
+  // ljw ---------------------------------
   enum Results {
     case error(String)
-    case success([ThingToDo])
+    case success([Item])
   }
 
   @Generable(description: "A container for a list of items")
   struct ThingsToDo {
     @Guide(description: "A list of things to do", .count(6...10))
-    let items: [ThingToDo]
+    let items: [Item]
   }
 
   @Generable(description: "A single item of things to do")
-  struct ThingToDo {
+  struct Item {
     @Guide(description: "Name for this item")
     let name: String
     @Guide(description: "Address for this item")
@@ -30,21 +72,35 @@ actor AIManager {
     let city: String
     @Guide(description: "State for this item")
     let state: String
-    @Guide(description: "More information for this item")
-    let otherInfo: String
+    @Guide(description: "A short description about of this place")
+    let description: String
+    @Guide(description: "Something interesting about this place")
+    let somethingInteresting: String
   }
 
   let continuation: AsyncStream<Results>.Continuation
+  let logger = Logger(subsystem: "com.moofus.explorer", category: "AIManager")
   let stream: AsyncStream<Results>
 
-  init() {
+  private let instructions: String?
+
+  init(instructions: String? = nil) {
+    self.instructions = instructions
     (stream, continuation) = AsyncStream.makeStream(of: Results.self)
   }
 
+
   func junk() async {
-    let session = LanguageModelSession()
+/*
+    let session: LanguageModelSession
+    if let instructions {
+      session = LanguageModelSession(instructions: instructions)
+    } else {
+      session = LanguageModelSession()
+    }
+
     do {
-      let text = "Find a things to do near oakland, ca"
+      let text = "Generate a list of things to do near oakland, ca"
       let response = try await session.respond(to: text,
                                                generating: ThingsToDo.self)
       //    print("ljw response")
@@ -77,7 +133,7 @@ actor AIManager {
       print("Error")
       print(error.localizedDescription)
     }
-
+*/
 
 
     /*
@@ -94,28 +150,6 @@ actor AIManager {
      ThingToDo(name: "Enjoy the Ferry Building Marketplace", address: "800 Embarcadero, Oakland, CA 94612", city: "Oakland", state: "CA", otherInfo: "A food hall with diverse culinary options and local artisans.")
      ljw items end --------------------------------
      */
-
-    //  func getCoordinates(from address: String) async throws -> CLLocationCoordinate2D? {
-    //      // Create the request with the address string
-    //    let request = MKGeocodingRequest(addressString: address)
-    //
-    //      // Execute the request
-    //    let response = try await request?.mapItems.first
-    //
-    //      // Extract the coordinate from the first result
-    //      return response.first?.placemark.coordinate
-    //  }
-    //
-    //  // Usage Example
-    //  let address = "1600 Amphitheatre Parkway, Mountain View, CA"
-    //  getCoordinate(from: address) { (coordinate, error) in
-    //      if let coordinate = coordinate {
-    //          print("Latitude: \(coordinate.latitude), Longitude: \(coordinate.longitude)")
-    //      } else if let error = error {
-    //          print("Error: \(error.localizedDescription)")
-    //      }
-    //  }
-
 
 
     //  let searchRequest = MKLocalSearch.Request()
@@ -148,6 +182,31 @@ actor AIManager {
     //  Location: 37.7147697, -122.14176
     //  ----------------------------------
 
+  }
+}
+
+// MARK: - Public Methods
+extension AIManager {
+  func getItems() async throws -> [Item] {
+    try isModelAvailable()
+    throw Error.appleIntelligenceNotEnabled
+
+
+    return []
+  }
+}
+
+
+// MARK: - Private Methods
+extension AIManager {
+  private func isModelAvailable() throws {
+    switch SystemLanguageModel.default.availability {
+    case .available: logger.info("Foundation Models is available and ready to go!")
+    case .unavailable(.deviceNotEligible): throw Error.deviceNotEligible
+    case .unavailable(.appleIntelligenceNotEnabled): throw Error.appleIntelligenceNotEnabled
+    case .unavailable(.modelNotReady): throw Error.modelNotReady
+    case .unavailable(let other): throw Error.model("\(other)")
+    }
   }
 }
 
@@ -252,3 +311,28 @@ actor AIManager {
  }
 
  */
+
+//struct GetCityAndStateTool: Tool {
+//    let name = "getWeather"
+//    let description = "Retrieve the latest weather information for a city"
+//
+//    @Generable
+//    struct Arguments {
+//        @Guide(description: "The city to fetch the weather for")
+//        var city: String
+//    }
+//
+//    func call(arguments: Arguments) async throws -> ToolOutput {
+//        let places = try await CLGeocoder().geocodeAddressString(arguments.city)
+//        let weather = try await WeatherService.shared.weather(for: places.first!.location!)
+//        let temperature = weather.currentWeather.temperature.value
+//
+//        let content = GeneratedContent(properties: ["temperature": temperature])
+//        let output = ToolOutput(content)
+//
+//        // Or if your tool’s output is natural language:
+//        // let output = ToolOutput("\(arguments.city)'s temperature is \(temperature) degrees.")
+//
+//        return output
+//    }
+//}

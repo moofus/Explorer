@@ -10,7 +10,7 @@ import CoreLocation
 import os
 import SwiftUI
 
-actor LocationManager {
+extension LocationManager {
   enum Error: LocalizedError {
     case authorizationDenied
     case authorizationDeniedGlobally
@@ -45,23 +45,22 @@ actor LocationManager {
     case error(Error)
     case location(CLLocation)
   }
+}
 
+actor LocationManager {
   let stream: AsyncStream<Response>
 
   private let continuation: AsyncStream<Response>.Continuation
   private(set) var count = 0
-  private(set) var error: Error?
   private let logger = Logger(subsystem: "com.moofus.explorer", category: "LocationManager")
+  private var maxCount = Int.max
   private var task: Task<Void,Never>? = nil
 
   private(set) var started = false {
     didSet {
+      reset()
       if started {
-        reset()
         run()
-      } else {
-        task?.cancel()
-        task = nil
       }
     }
   }
@@ -76,7 +75,6 @@ actor LocationManager {
 extension LocationManager {
   private func reset() {
     count = 0
-    error = nil
     task?.cancel()
     task = nil
   }
@@ -93,6 +91,9 @@ extension LocationManager {
             continuation.yield(.location(location))
             count += 1
             logger.info("count=\(self.count) location=\(location)")
+            if count >= maxCount {
+              break
+            }
           }
           if update.accuracyLimited {
             logger.info("Location accuracyLimited: Explorer can't access your precise location, using approximate location")
@@ -143,7 +144,8 @@ extension LocationManager {
 
 // MARK: - Public Methods
 extension LocationManager {
-  func start() {
+  func start(maxCount: Int = Int.max) {
+    self.maxCount = maxCount
     started = true
   }
 }
