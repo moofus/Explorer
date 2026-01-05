@@ -21,7 +21,7 @@ final actor ExplorerSource {
     case error(SourceError)
     case initial
     case loaded([AIManager.Item])
-    case loading
+    case loading(MKMapItem?)
   }
 
   @Injected(\.aiManager) var aiManager: AIManager
@@ -67,9 +67,8 @@ extension ExplorerSource {
           print("region=\(item.addressRepresentations?.region ?? "Country")")
           if let cityState = item.addressRepresentations?.cityWithContext {
             do {
-              continuation.yield(.loading)
+              continuation.yield(.loading(item))
               let list = try await aiManager.getItems(cityState: cityState)
-              print("list=\(list)")
               continuation.yield(.loaded(list))
             } catch {
               print(error)
@@ -115,7 +114,7 @@ extension ExplorerSource {
   /// If the spelling is a little off, it will correct the spelling and return the correct city, state
   /// - Parameter address: The city and state separated by a comma or a zipcode
   /// - Returns: The city and state separated by a comma, which may not be exactly what was entered
-  /*private*/ func getCityState(from address: String) async throws -> String {
+  func getCityState(from address: String) async throws -> String {
     // Create the request with the address string
     // example addressString "Oakland, CA", to verify that "Oakland, CA" exist
     let request = MKGeocodingRequest(addressString: address)
@@ -143,11 +142,11 @@ extension ExplorerSource {
       throw SourceError.cityState("bad region")
     }
     return "\(mapItem.addressRepresentations?.cityWithContext ?? "City, State")"
-
   }
 
   func searchCurrentLocation() async {
     print("ljw \(Date()) \(#file):\(#function):\(#line)")
+    continuation.yield(.loading(nil))
     await locationManager.start(maxCount: 1)
   }
 }

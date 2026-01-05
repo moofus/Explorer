@@ -8,18 +8,17 @@
 import SwiftUI
 
 struct ButtonWithImage: View {
-  private var action: (() -> ())?
-  private var systemName: String
-  private var text: String
-  @State private var textValue: String = ""
+  var text: String
+  @Binding var textValue: String
+  var systemName: String
 
-  init(text: String,
-       systemName: String,
-       action: (() -> ())? = nil
-  ) {
-    self.action = action
-    self.systemName = systemName
+   var action: (() -> ())?
+
+  init(text: String, textValue: Binding<String>, systemName: String, action: (() -> Void)? = nil) {
     self.text = text
+    self._textValue = textValue
+    self.systemName = systemName
+    self.action = action
   }
 
   var body: some View {
@@ -30,6 +29,9 @@ struct ButtonWithImage: View {
       HStack {
         Image(systemName: systemName)
         TextField(text, text: $textValue)
+          .onSubmit {
+            action?()
+          }
       }
       .font(.title3)
       .padding(.all, 10)
@@ -40,5 +42,6 @@ struct ButtonWithImage: View {
 }
 
 #Preview {
-  ButtonWithImage(text: "Search City, State or Zip...", systemName: "magnifyingglass")
+  @Previewable @State var textValue: String = "testing"
+  ButtonWithImage(text: "Search City, State or Zip...", textValue: $textValue, systemName: "magnifyingglass")
 }

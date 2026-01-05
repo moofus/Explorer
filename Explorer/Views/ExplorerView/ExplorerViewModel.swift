@@ -7,6 +7,7 @@
 
 import Foundation
 import FactoryKit
+import MapKit
 
 @MainActor
 @Observable
@@ -17,6 +18,8 @@ class ExplorerViewModel {
   private(set) var errorDescription = ""
   private(set) var errorRecoverySuggestion = ""
   var haveError = false
+  var loading = false
+  var mkMapItem: MKMapItem?
 
   init() {
     print("ljw \(Date()) \(#file):\(#function):\(#line)")
@@ -24,7 +27,7 @@ class ExplorerViewModel {
   }
 
   private func handleSource() async {
-    for await state in source.stream {
+     for await state in source.stream {
       switch state {
       case .error(let error):
         if case let .location(description, recoverySuggestion) = error {
@@ -36,12 +39,19 @@ class ExplorerViewModel {
           errorRecoverySuggestion = ""
         }
         haveError = true
+        loading = false
       case .initial:
+        loading = false
         break
-      case .loaded(_):
-        print("loaded")
-      case .loading:
+      case .loaded(let list):
+        loading = false
+        print("loaded list")
+        print(list)
+
+      case .loading(let mkMapItem):
         print("loading")
+        self.mkMapItem = mkMapItem
+        loading = true
       }
     }
   }

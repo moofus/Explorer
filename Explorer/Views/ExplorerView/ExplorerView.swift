@@ -17,106 +17,122 @@ import MapKit
 import SwiftUI
 
 struct ExplorerView: View {
-  enum FindKind: String, CaseIterable, Identifiable {
-    case explore
-    case todo
-
-    var id: Self { self }
-  }
-
   @Injected(\.explorerSource) var source: ExplorerSource
   @Injected(\.explorerViewModel) var viewModel: ExplorerViewModel
-
-  @State private var item: MKMapItem?
-  @State private var findKind = FindKind.explore
 
   var body: some View {
     @Bindable var viewModel = viewModel
 
-    NavigationSplitView {
-      VStack {
-        HeaderView()
+    ZStack {
+      MainView(source: source, viewModel: viewModel)
 
-        MyMapView(item: item)
-        .overlay {
-          FindActivitiesButton(text: "Search Current Location") {
-            Task {
-              await source.searchCurrentLocation()
-            }
+      if viewModel.loading {
+        ProgressView()
+          .controlSize(.extraLarge)
+          .padding()
+          .tint(.accent)
+          .background(Color.gray.opacity(0.5))
+          .border(Color.yellow, width: 2)
+      }
+    }
+  }
+}
+
+extension ExplorerView {
+  struct ExplorerHeaderView: View {
+    var body: some View {
+
+      VStack(spacing: 10) {
+        Text("Explorer")
+          .font(.system(size: 42, weight: .bold, design: .serif))
+          .foregroundColor(.accent)
+
+        Text("Where will you explore today?")
+          .font(.headline)
+          .foregroundColor(.secondary)
+          .padding(.bottom)
+      }
+      .toolbar {
+        ToolbarItem {
+          Button {
+            print("pushed profile")
+          } label: {
+            Image(systemName: "person.fill")
+              .foregroundStyle(.accent)
           }
         }
+      }
+      .toolbarTitleDisplayMode(.inline)
+    }
+  }
 
-        ButtonWithImage(text: "Search City, State, or Zip", systemName: "magnifyingglass") {
-          print("pushed search")
+  struct MainView: View {
+    @State private var textValue: String = ""
+    let source: ExplorerSource
+    @Bindable var viewModel: ExplorerViewModel
+
+    var body: some View {
+      NavigationSplitView {
+        VStack {
+          ExplorerHeaderView()
+
+          ExplorerMapView(item: viewModel.mkMapItem)
+            .overlay {
+              if viewModel.mkMapItem == nil {
+                FindActivitiesButton(text: "Search Current Location") {
+                  Task {
+                    await source.searchCurrentLocation()
+                  }
+                }
+              }
+            }
+
+          ButtonWithImage(text: "Search City, State, or Zip", textValue: $textValue, systemName: "magnifyingglass") {
+            print("pushed search value=\(textValue)")
+            //await source.searchCityStateOrZip(text: textValue)
+          }
+          .padding(.top)
+
+          Spacer()
         }
-        .padding(.top)
-
-        Spacer()
+        .safeAreaPadding([.leading, .trailing])
+      } detail: {
+        ExplorerDetailView()
       }
-      .safeAreaPadding([.leading, .trailing])
-    } detail: {
-      DetailView()
-    }
-    .alert(viewModel.errorDescription, isPresented: $viewModel.haveError, presenting: viewModel) {  viewModel in
-      Button("OK") {}
-    } message: { error in
-      Text(viewModel.errorRecoverySuggestion)
-    }
-  }
-}
-
-struct DetailView: View {
-  var body: some View {
-    Image(systemName: "globe")
-      .imageScale(.large)
-      .foregroundStyle(.tint)
-    Text("Detail")
-      .navigationTitle("Explorer")
-  }
-}
-
-struct HeaderView: View {
-  var body: some View {
-
-    VStack(spacing: 10) {
-      Text("Moofuslist")
-        .font(.system(size: 42, weight: .bold, design: .serif))
-        .foregroundColor(.accent)
-
-      Text("Where will you explore today?")
-        .font(.headline)
-        .foregroundColor(.secondary)
-        .padding(.bottom)
-    }
-    //        .padding(.top, 60)
-    .toolbar {
-      ToolbarItem {
-        Button {
-          print("pushed profile")
-        } label: {
-          Image(systemName: "person.fill")
-            .foregroundStyle(.accent)
-        }
+      .alert(viewModel.errorDescription, isPresented: $viewModel.haveError, presenting: viewModel) {  viewModel in
+        Button("OK") {}
+      } message: { error in
+        Text(viewModel.errorRecoverySuggestion)
       }
     }
-    .toolbarTitleDisplayMode(.inline)
-  }
-}
-
-struct MyMapView: View {
-  let item: MKMapItem?
-  var body: some View {
-    Map() {
-      if let item {
-        Marker(item: item)
-      }
-    }
-    .aspectRatio(1.0, contentMode: .fit)
-    .clipShape(RoundedRectangle(cornerRadius: 30))
-    .mapControlVisibility(.hidden)
   }
 }
 
 #Preview {
   ExplorerView()
 }
+
+
+//struct CustomCircleStyle: ProgressViewStyle {
+//    func makeBody(configuration: Configuration) -> some View {
+//        let fraction = configuration.fractionCompleted ?? 0
+//
+//        ZStack {
+//            Circle()
+//                .stroke(Color.gray.opacity(0.3), lineWidth: 10)
+//
+//            Circle()
+//                .trim(from: 0, to: CGFloat(fraction))
+//                .stroke(Color.blue, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+//                .rotationEffect(.degrees(-90))
+//                .animation(.linear, value: fraction)
+//
+//            Text("\(Int(fraction * 100))%")
+//        }
+//        .frame(width: 100, height: 100)
+//    }
+//}
+
+//// Usage
+//ProgressView(value: 0.6)
+//    .progressViewStyle(CustomCircleStyle())
