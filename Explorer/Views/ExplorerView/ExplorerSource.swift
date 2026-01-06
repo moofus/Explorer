@@ -55,9 +55,7 @@ extension ExplorerSource {
   private func handle(location: CLLocation) async {
     if let request = MKReverseGeocodingRequest(location: location) {
       do {
-        print("isLoading=\(request.isLoading)")
         let mapItems = try await request.mapItems
-        print("isLoading=\(request.isLoading)")
         print("mapItems.count=\(mapItems.count)")
         if let item = mapItems.first {
           print(item)
@@ -78,12 +76,12 @@ extension ExplorerSource {
                   recoverySuggestion: error.recoverySuggestion
                 )
                 continuation.yield(.error(error))
-              }
-              else {
+              } else {
                 assertionFailure("unknown error=\(error)")
                 continuation.yield(.error(.unknown(error.localizedDescription)))
               }
             }
+            return
           }
         }
       } catch {
@@ -114,35 +112,35 @@ extension ExplorerSource {
   /// If the spelling is a little off, it will correct the spelling and return the correct city, state
   /// - Parameter address: The city and state separated by a comma or a zipcode
   /// - Returns: The city and state separated by a comma, which may not be exactly what was entered
-  func getCityState(from address: String) async throws -> String {
-    // Create the request with the address string
-    // example addressString "Oakland, CA", to verify that "Oakland, CA" exist
-    let request = MKGeocodingRequest(addressString: address)
-    let usRegion = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795), // Approx center of US
-        span: MKCoordinateSpan(latitudeDelta: 40, longitudeDelta: 60) // Wide span for US
-    )
-    request?.region = usRegion
-
-    // Execute the request
-    let mapItem = (try await request?.mapItems.first)!
-
-    // Extract the coordinate from the first result
-    print(mapItem)
-    print("city=\(mapItem.addressRepresentations?.cityName ?? "home")")
-    print("cityWithContext=\(mapItem.addressRepresentations?.cityWithContext ?? "City, State")")
-    print("regionName=\(mapItem.addressRepresentations?.regionName ?? "Country")")
-    print("region=\(mapItem.addressRepresentations?.region ?? "Country")")
-    guard let region = mapItem.addressRepresentations?.region else {
-      print("no region")
-      throw SourceError.cityState("no region")
-    }
-    guard region == "US" else {
-      print("bad region")
-      throw SourceError.cityState("bad region")
-    }
-    return "\(mapItem.addressRepresentations?.cityWithContext ?? "City, State")"
-  }
+//  func getCityState(from address: String) async throws -> String {
+//    // Create the request with the address string
+//    // example addressString "Oakland, CA", to verify that "Oakland, CA" exist
+//    let request = MKGeocodingRequest(addressString: address)
+//    let usRegion = MKCoordinateRegion(
+//        center: CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795), // Approx center of US
+//        span: MKCoordinateSpan(latitudeDelta: 40, longitudeDelta: 60) // Wide span for US
+//    )
+//    request?.region = usRegion
+//
+//    // Execute the request
+//    let mapItem = (try await request?.mapItems.first)!
+//
+//    // Extract the coordinate from the first result
+//    print(mapItem)
+//    print("city=\(mapItem.addressRepresentations?.cityName ?? "home")")
+//    print("cityWithContext=\(mapItem.addressRepresentations?.cityWithContext ?? "City, State")")
+//    print("regionName=\(mapItem.addressRepresentations?.regionName ?? "Country")")
+//    print("region=\(mapItem.addressRepresentations?.region ?? "Country")")
+//    guard let region = mapItem.addressRepresentations?.region else {
+//      print("no region")
+//      throw SourceError.cityState("no region")
+//    }
+//    guard region == "US" else {
+//      print("bad region")
+//      throw SourceError.cityState("bad region")
+//    }
+//    return "\(mapItem.addressRepresentations?.cityWithContext ?? "City, State")"
+//  }
 
   func searchCurrentLocation() async {
     print("ljw \(Date()) \(#file):\(#function):\(#line)")
@@ -150,18 +148,3 @@ extension ExplorerSource {
     await locationManager.start(maxCount: 1)
   }
 }
-/*
- <MKMapItem: 0x116771f40> {
- address = "6825 Elverton Dr, Oakland, CA  94611, United States";
- isCurrentLocation = 0;
- name = "6825 Elverton Dr";
- placemark = "6825 Elverton Dr, 6825 Elverton Dr, Oakland, CA  94611, United States @ <+37.84662530,-122.20234210> +/- 0.00m, region CLCircularRegion (identifier:'<+37.84662530,-122.20234210> radius 70.59', center:<+37.84662530,-122.20234210>, radius:70.59m)";
- timeZone = "America/Los_Angeles (PST) offset -28800";
- }
- item.city=Oakland
- item.cityWithContext=Optional("Oakland, CA")
- item.regionName=Optional("United States")
- item.region=Optional(US)
-
- */
-

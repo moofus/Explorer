@@ -13,24 +13,24 @@ import CoreLocation
 import Foundation
 
 #Playground {
-//      let instructions = """
-//          Your job is to find activities to do and places to go in Oakland, CA.
-//
-//          Always include a short description, and something interesting about the activity or place.
-//          """
-//
-//  let aiManager = AIManager(instructions: instructions)
-//  do {
-//    let items = try await aiManager.getItems(cityState: "Oakland, CA")
-//    print("items=")
-//    print(items)
-//  } catch {
-//    if let error = error as? AIManager.Error {
-//      print("ljw error=\(error)")
-//    } else {
-//      print("unknown error")
-//    }
-//  }
+      let instructions = """
+          Your job is to find activities to do and places to go in Oakland, CA.
+
+          Always include a short description, and something interesting about the activity or place.
+          """
+
+  let aiManager = AIManager(instructions: instructions)
+  do {
+    let items = try await aiManager.getItems(cityState: "Oakland, CA")
+    print("items=")
+    print(items)
+  } catch {
+    if let error = error as? AIManager.Error {
+      print("ljw error=\(error)")
+    } else {
+      print("unknown error")
+    }
+  }
 //  let source = ExplorerSource()
 //  Task {
 //    do {

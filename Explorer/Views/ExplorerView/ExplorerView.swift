@@ -24,7 +24,7 @@ struct ExplorerView: View {
     @Bindable var viewModel = viewModel
 
     ZStack {
-      MainView(source: source, viewModel: viewModel)
+      ExplorerMainView(source: source, viewModel: viewModel)
 
       if viewModel.loading {
         ProgressView()
@@ -66,7 +66,7 @@ extension ExplorerView {
     }
   }
 
-  struct MainView: View {
+  struct ExplorerMainView: View {
     @State private var textValue: String = ""
     let source: ExplorerSource
     @Bindable var viewModel: ExplorerViewModel
@@ -76,16 +76,11 @@ extension ExplorerView {
         VStack {
           ExplorerHeaderView()
 
-          ExplorerMapView(item: viewModel.mkMapItem)
-            .overlay {
-              if viewModel.mkMapItem == nil {
-                FindActivitiesButton(text: "Search Current Location") {
-                  Task {
-                    await source.searchCurrentLocation()
-                  }
-                }
-              }
+          ExplorerMapView(item: viewModel.mkMapItem) {
+            Task {
+              await source.searchCurrentLocation()
             }
+          }
 
           ButtonWithImage(text: "Search City, State, or Zip", textValue: $textValue, systemName: "magnifyingglass") {
             print("pushed search value=\(textValue)")
