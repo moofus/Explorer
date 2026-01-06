@@ -21,9 +21,9 @@ import Foundation
 
   let aiManager = AIManager(instructions: instructions)
   do {
-    let items = try await aiManager.getItems(cityState: "Oakland, CA")
-    print("items=")
-    print(items)
+    let activities = try await aiManager.getActivities(cityState: "Oakland, CA")
+    print("activities=")
+    print(activities)
   } catch {
     if let error = error as? AIManager.Error {
       print("ljw error=\(error)")

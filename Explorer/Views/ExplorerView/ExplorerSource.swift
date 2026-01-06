@@ -20,7 +20,7 @@ final actor ExplorerSource {
   enum State {
     case error(SourceError)
     case initial
-    case loaded([AIManager.Item])
+    case loaded([AIManager.Activity])
     case loading(MKMapItem?)
   }
 
@@ -66,8 +66,8 @@ extension ExplorerSource {
           if let cityState = item.addressRepresentations?.cityWithContext {
             do {
               continuation.yield(.loading(item))
-              let list = try await aiManager.getItems(cityState: cityState)
-              continuation.yield(.loaded(list))
+              let activities = try await aiManager.getActivities(cityState: cityState)
+              continuation.yield(.loaded(activities))
             } catch {
               print(error)
               if let error = error as? AIManager.Error {
@@ -86,6 +86,8 @@ extension ExplorerSource {
         }
       } catch {
         print("Error MKReverseGeocodingRequest: \(error)")
+        assertionFailure("unknown error=\(error)")
+        continuation.yield(.error(.unknown(error.localizedDescription)))
       }
     }
     let error = SourceError.location(description: "Can't get location", recoverySuggestion: nil)

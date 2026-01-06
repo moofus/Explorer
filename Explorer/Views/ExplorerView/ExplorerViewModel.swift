@@ -31,43 +31,52 @@ class ExplorerViewModel {
 extension ExplorerViewModel {
 
   private func categoryToImageName(category: String) -> String {
-    return switch category {
+    switch category {
 
       // Culture & Arts
+    case "Art", "Arts and Culture": "palette.fill"
     case "Art Gallery", "Galleries": "photo.fill.on.rectangle.fill" // frame.3.fill
     case "Concert Halls": "music.note.house.fill"
+    case "Architecture", "History and Culture", "Landmark", "Scenic": "mappin.circle.fill"
     case "Museums": "building.2.fill"
     case "Performing Arts": "theatermasks"
     case "Theaters", "Theater": "theatermasks.fill"
 
+      // Cultural
+    case "Culture", "Cultural Experience", "Cultural Neighborhood": "globe"
+    case "Cultural", "Cultural Landmark": "building.columns.fill"
+    case "History", "Historical Site": "house.and.flag.fill"
+
+      // Entertainment
+    case "Entertainment": "popcorn.fill"
+
       // Family Activities
+    case "Animal Park": "pawprint.fill"
     case "Amusement Parks", "Recreation": "figure.walk" // ferris.wheel.fill
+    case "Science", "Science Museum": "atom"
+    case "Island Tour", "Tour": "figure.walk"
     case "Zoos", "Zoo": "pawprint.fill"
+
+      // Food & Dining
+    case "Food", "Restaurants": "fork.knife.circle.fill" // fork.knife
 
       // Outdoor & Nature
     case "Beaches", "Beach": "beach.umbrella.fill" // water.waves.and.sun.fill
     case "Biking": "bicycle"
     case "Gardens", "Garden": "leaf.fill"
-    case "Hiking", "Outdoor": "figure.hiking.circle.fill" // mountains.2.fill
+    case "Hiking", "Nature Reserve", "Outdoor", "Nature & Hiking": "figure.hiking.circle.fill" // mountains.2.fill
     case "Nature", "Parks", "Park", "Zoological Park": "tree.fill"
     case "Outdoor Activity", "Outdoor Recreation": "figure.hiking.circle.fill" // mountains.2.fill
+    case "Sightseeing": "bus.fill"
 
       // Services & Other
     case "Public Transit": "bus.fill"
+          case "Transportation": "car.fill"
 
       // Shopping & Fashion
     case "Markets", "Market": "carrot.fill"
-    case "Shopping/Dining": "bag.fill"
+    case "Neighborhood", "Shopping/Dining", "Shopping & Dining", "Shopping and Dining": "bag.fill" // ljw rotate dinning
 
-      // Family Activities
-    case "Animal Park": "pawprint.fill"
-
-      // Entertainment
-    case "Entertainment": "popcorn.fill"
-
-      // Cultural
-    case "Cultural Experience": "globe"
-    case "Historical Site": "house.and.flag.fill"
 
 
       //////////////////////////////////////// ljw
@@ -185,8 +194,6 @@ extension ExplorerViewModel {
 //      // Services & Other
 //    case "Hotels":
 //       "building.fill"
-//    case "Transportation":
-//       "car.fill"
 //    case "Photography":
 //       "camera.fill"
 //    case "Events":
@@ -197,7 +204,7 @@ extension ExplorerViewModel {
 //       "airplane"
     default:
       fatalError() // ljw
-      //"mappin.circle.fill"
+      // "mappin.circle.fill"
     }
   }
   
@@ -219,9 +226,12 @@ extension ExplorerViewModel {
         haveError = true
       case .initial:
         break
-      case .loaded(let list):
-        print("loaded list")
-        print(list)
+      case .loaded(let activies):
+        print("loaded items")
+        print(activies)
+        for activity in activies {
+          print("category=\(activity.category) image=\(categoryToImageName(category: activity.category))")
+        }
       case .loading(let mkMapItem):
         print("loading")
         self.mkMapItem = mkMapItem
@@ -230,9 +240,3 @@ extension ExplorerViewModel {
     }
   }
 }
-
-/*
- [Explorer.AIManager.Item(name: "Oakland Museum of California", address: "1800 Broadway, Oakland, CA 94612", city: "Oakland", state: "CA", category: "Museum", description: "An interactive museum that focuses on California\'s history, art, and culture.", somethingInteresting: "It offers a wide array of exhibits on California\'s diverse cultural heritage."), Explorer.AIManager.Item(name: "Hiking at Mount Diablo Regional Park", address: "1234 Mount Diablo Rd, Concord, CA 94520", city: "Concord", state: "CA", category: "Outdoor Activity", description: "Enjoy scenic trails with views of the San Francisco Bay and the East Bay.", somethingInteresting: "The trails are perfect for both beginners and experienced hikers, with breathtaking panoramic views."), Explorer.AIManager.Item(name: "Explore Jack London Square", address: "Jack London Square, Oakland, CA 94612", city: "Oakland", state: "CA", category: "Shopping/Dining", description: "A vibrant waterfront area with shops, restaurants, and entertainment options.", somethingInteresting: "Known for its lively atmosphere and annual events, it\'s a great place to experience local culture."), Explorer.AIManager.Item(name: "Visit the Oakland Zoo", address: "2200 Telegraph Ave, Oakland, CA 94609", city: "Oakland", state: "CA", category: "Animal Park", description: "A family-friendly zoo home to a wide variety of animals and interactive exhibits.", somethingInteresting: "The zoo is committed to conservation and education, offering behind-the-scenes tours."), Explorer.AIManager.Item(name: "Catch a Show at Fox Theatre", address: "2021 Broadway, Oakland, CA 94612", city: "Oakland", state: "CA", category: "Entertainment", description: "A historic theater showcasing Broadway shows, concerts, and other performances.", somethingInteresting: "Opened in 1927, it\'s one of the oldest continuously operating theaters in the West."), Explorer.AIManager.Item(name: "Stroll Through Chinatown", address: "1600 Telegraph Ave, Oakland, CA 94609", city: "Oakland", state: "CA", category: "Cultural Experience", description: "Explore a vibrant neighborhood filled with authentic Asian cuisine and shopping.", somethingInteresting: "It\'s one of the oldest Chinatowns in the United States, offering a taste of East Asian culture."), Explorer.AIManager.Item(name: "Bike the East Bay Bike Path", address: "Various points in East Bay", city: "Various", state: "CA", category: "Biking", description: "A network of bike paths perfect for leisurely rides or more challenging routes.", somethingInteresting: "The path offers stunning views of the bay and surrounding landscapes, making it ideal for outdoor enthusiasts."),
-Explorer.AIManager.Item(name: "Visit the Oakland Botanical Garden", address: "1000 Quail Hill Rd, Oakland, CA 94610", city: "Oakland", state: "CA", category: "Garden", description: "A serene garden featuring diverse plant collections and beautiful landscapes.", somethingInteresting: "It\'s a peaceful retreat with themed gardens, perfect for nature lovers."),
-Explorer.AIManager.Item(name: "Discover the Oakland Art Museum", address: "1800 Broadway, Oakland, CA 94612", city: "Oakland", state: "CA", category: "Art Gallery", description: "Showcases contemporary and historical art from local and international artists.", somethingInteresting: "The museum frequently hosts rotating exhibits and community art programs.")]
- */

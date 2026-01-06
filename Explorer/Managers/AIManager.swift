@@ -44,26 +44,22 @@ actor AIManager {
     }
   }
 
-  enum Items {
+  enum Response {
     case error(String)
-    case items([Item])
+    case activities([Activity])
   }
 
 
   // ljw ---------------------------------
-  enum Results {
-    case error(String)
-    case success([Item])
-  }
 
   @Generable(description: "A container for a list of items")
   struct ThingsToDo {
     @Guide(description: "A list of things to do", .count(6...10))
-    let items: [Item]
+    let items: [Activity]
   }
 
   @Generable(description: "A single item of things to do")
-  struct Item {
+  struct Activity {
     @Guide(description: "Name for this item")
     let name: String
     @Guide(description: "Address for this item")
@@ -80,9 +76,9 @@ actor AIManager {
     let somethingInteresting: String
   }
 
-  let continuation: AsyncStream<Results>.Continuation
+//  let continuation: AsyncStream<Results>.Continuation
   let logger = Logger(subsystem: "com.moofus.explorer", category: "AIManager")
-  let stream: AsyncStream<Results>
+//  let stream: AsyncStream<Results>
 
   //private let instructions: String?
   let instructions = """
@@ -93,7 +89,7 @@ actor AIManager {
 
   init(instructions: String? = nil) {
 //    self.instructions = instructions
-    (stream, continuation) = AsyncStream.makeStream(of: Results.self)
+//    (stream, continuation) = AsyncStream.makeStream(of: Results.self)
   }
 
 
@@ -199,26 +195,26 @@ actor AIManager {
 
 // MARK: - Public Methods
 extension AIManager {
-  func getItems(cityState: String) async throws -> [Item] {
+  func getActivities(cityState: String) async throws -> [Activity] {
     try isModelAvailable()
 
     let session: LanguageModelSession
- //   if let instructions {
-      session = LanguageModelSession(instructions: instructions)
- //   } else {
- //     session = LanguageModelSession()
- //   }
+    //   if let instructions {
+    session = LanguageModelSession(instructions: instructions)
+    //   } else {
+    //     session = LanguageModelSession()
+    //   }
 
     do {
       let text = "Generate a list of things to do near \(cityState)"
       let response = try await session.respond(to: text, generating: ThingsToDo.self)
       //    print("ljw response")
       //    print(response)
-//      print("ljw items")
-//      for item in response.content.items {
-//        print(item)
-//      }
-//      print("ljw items end --------------------------------")
+      //      print("ljw items")
+      //      for item in response.content.items {
+      //        print(item)
+      //      }
+      //      print("ljw items end --------------------------------")
       if !response.content.items.isEmpty {
         return response.content.items
       }
@@ -243,7 +239,7 @@ extension AIManager {
     }
     catch {
       print("Error")
-      print(error.localizedDescription)
+      print(error.localizedDescription) // ljw
     }
 
     return []
