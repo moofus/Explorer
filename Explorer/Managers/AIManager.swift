@@ -52,14 +52,14 @@ actor AIManager {
 
   // ljw ---------------------------------
 
-  @Generable(description: "A container for a list of items")
+  @Generable(description: "A container for a list of activities")
   struct Activities {
-    @Guide(description: "A list of things to do", .count(6...10))
-    let items: [Activity]
+    @Guide(description: "A list of activities to do", .count(6...10))
+    let activities: [Activity]
   }
 
-  @Generable(description: "A single item of things to do")
-  struct Activity {
+  @Generable(description: "A single activity to do")
+  struct Activity: Hashable {
     @Guide(description: "Name for this item")
     let name: String
     @Guide(description: "Address for this item")
@@ -70,6 +70,8 @@ actor AIManager {
     let state: String
     @Guide(description: "The category for this item")
     let category: String
+    @Guide(description: "The distance in miles")
+    let distance: Double
     @Guide(description: "A short description about of this place")
     let description: String
     @Guide(description: "Something interesting about this place")
@@ -202,11 +204,11 @@ extension AIManager {
       // Streaming partial generations
       let stream = session.streamResponse(to: text, generating: Activities.self)
 
-      var activities = [Activity]()
       for try await partial in stream {
-        if let items = partial.content.items {
-          for idx in 0..<items.count {
-            if let activity = partialToFull(activity: items[idx]) {
+        var activities = [Activity]()
+        if let partialActivies = partial.content.activities {
+          for idx in 0..<partialActivies.count {
+            if let activity = partialToFull(activity: partialActivies[idx]) {
               activities.append(activity)
             }
           }
@@ -247,6 +249,7 @@ extension AIManager {
           let city = activity.city,
           let state = activity.state,
           let category = activity.category,
+          let distance = activity.distance,
           let description = activity.description,
           let somethingInteresting = activity.somethingInteresting else {
       return nil
@@ -257,6 +260,7 @@ extension AIManager {
       city: city,
       state: state,
       category: category,
+      distance: distance,
       description: description,
       somethingInteresting: somethingInteresting
     )

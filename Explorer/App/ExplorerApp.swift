@@ -10,16 +10,19 @@ import SwiftUI
 
 @main
 struct ExplorerApp: App {
+
   var body: some Scene {
     WindowGroup {
       ExplorerView()
       //          LocationManagerView()
     }
   }
-
 }
 
 extension Container {
+  @MainActor var appCoordinator: Factory<AppCoordinator> {
+    self { @MainActor in AppCoordinator() }.singleton
+  }
   var aiManager: Factory<AIManager> {
     self { AIManager() }.singleton
   }

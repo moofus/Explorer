@@ -10,11 +10,185 @@ import MapKit
 import SwiftUI
 
 struct ExplorerDetailView: View {
+  typealias Activity = ExplorerViewModel.Activity
+
+  @Binding var activities: [ExplorerViewModel.Activity]
+  let location: String
+
   var body: some View {
-    Image(systemName: "globe")
-      .imageScale(.large)
-      .foregroundStyle(.tint)
-    Text("Detail")
-      .navigationTitle("Explorer")
+    ScrollView {
+      VStack(spacing: 12) {
+        ForEach(activities) { activity in
+          ActivityCardView(activity: activity)
+        }
+      }
+      .padding(16)
+    }
+    .background(Color(red: 0.98, green: 0.98, blue: 0.99).ignoresSafeArea())
   }
+}
+/*
+ ScrollView {
+     VStack(spacing: 12) {
+         ForEach(activities) { activity in
+             NavigationLink(destination: ActivityDetailView(activity: activity)) {
+               ActivityCardView(activity: activity)
+             }
+         }
+     }
+     .padding(16)
+ }
+
+ */
+struct ExplorerDetailView2: View {
+  typealias Activity = ExplorerViewModel.Activity
+  
+  let activities: [Activity]
+    let location: String
+    let themeColor = Color(red: 255/255, green: 129/255, blue: 66/255)
+    @State private var selectedSort = "Relevance"
+
+
+//    let activities = [
+//        Activity(name: "Downtown Pizza Co.", category: "Restaurants", rating: 4.8, distance: 0.3, address: "123 Main St", image: "fork.knife", reviews: 245, isFavorite: false),
+//        Activity(name: "Central Park Trails", category: "Parks", rating: 4.6, distance: 0.5, address: "Park Avenue", image: "tree.fill", reviews: 189, isFavorite: false),
+//        Activity(name: "Modern Art Gallery", category: "Museums", rating: 4.7, distance: 1.2, address: "456 Art Blvd", image: "building.2.fill", reviews: 156, isFavorite: false),
+//        Activity(name: "Comedy Club Live", category: "Entertainment", rating: 4.5, distance: 0.8, address: "789 Fun St", image: "popcorn.fill", reviews: 203, isFavorite: false),
+//        Activity(name: "Vintage Market Hall", category: "Shopping", rating: 4.4, distance: 1.1, address: "Shopping District", image: "bag.fill", reviews: 178, isFavorite: false),
+//        Activity(name: "The Rooftop Bar", category: "Nightlife", rating: 4.6, distance: 0.6, address: "Downtown Heights", image: "moon.stars.fill", reviews: 312, isFavorite: false),
+//    ]
+
+    var body: some View {
+        ZStack {
+            Color(red: 0.98, green: 0.98, blue: 0.99).ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Header
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Results near \(location)")
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.black)
+
+                    HStack(spacing: 10) {
+                        Menu {
+                            Button("Relevance") { selectedSort = "Relevance" }
+                            Button("Rating") { selectedSort = "Rating" }
+                            Button("Distance") { selectedSort = "Distance" }
+                        } label: {
+                            HStack {
+                                Image(systemName: "arrow.up.arrow.down")
+                                Text(selectedSort)
+                                    .font(.system(size: 14, weight: .medium))
+                            }
+                            .foregroundColor(themeColor)
+                            .padding(8)
+                            .background(Color.white)
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(themeColor.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+
+                        Spacer()
+
+                        Button(action: { }) {
+                            HStack {
+                                Image(systemName: "map")
+                                Text("Map")
+                                    .font(.system(size: 14, weight: .medium))
+                            }
+                            .foregroundColor(themeColor)
+                            .padding(8)
+                            .background(Color.white)
+                            .cornerRadius(8)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(themeColor.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                    }
+                }
+                .padding(20)
+                .background(Color.white)
+
+                // Results List
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(activities) { activity in
+                            NavigationLink(destination: ActivityDetailView(activity: activity)) {
+                              ActivityCardView(activity: activity)
+                            }
+                        }
+                    }
+                    .padding(16)
+                }
+            }
+        }
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+#Preview("ExplorerDetailView") {
+  @Previewable @State var activities = [
+    ExplorerViewModel.Activity(
+      address: "address",
+      category: "category",
+      city: "City",
+      description: "description",
+      distance: 1.5,
+      imageName: "house",
+      name: "name",
+      rating: 1.7,
+      reviews: 327,
+      somethingInteresting: "somethingInteresting",
+      state: "State"
+    ),
+    ExplorerViewModel.Activity(
+      address: "address",
+      category: "category",
+      city: "City",
+      description: "description",
+      distance: 1.5,
+      imageName: "house",
+      name: "name",
+      rating: 1.7,
+      reviews: 327,
+      somethingInteresting: "somethingInteresting",
+      state: "State"
+    )
+  ]
+
+  ExplorerDetailView(activities: $activities, location: "Oakland")
+}
+
+#Preview("ExplorerDetailView2") {
+  let activity = ExplorerViewModel.Activity(
+    address: "address",
+    category: "category",
+    city: "City",
+    description: "description",
+    distance: 1.5,
+    imageName: "house",
+    name: "name",
+    rating: 1.7,
+    reviews: 327,
+    somethingInteresting: "somethingInteresting",
+    state: "State"
+  )
+  let activity2 = ExplorerViewModel.Activity(
+    address: "address",
+    category: "category",
+    city: "City",
+    description: "description",
+    distance: 1.5,
+    imageName: "house",
+    name: "name",
+    rating: 1.7,
+    reviews: 327,
+    somethingInteresting: "somethingInteresting",
+    state: "State"
+  )
+
+  ExplorerDetailView2(activities: [activity, activity2], location: "Oakland")
 }

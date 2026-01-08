@@ -17,6 +17,9 @@ import MapKit
 import SwiftUI
 
 struct ExplorerView: View {
+  typealias Activity = ExplorerViewModel.Activity
+
+  @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
   @Injected(\.explorerSource) var source: ExplorerSource
   @Injected(\.explorerViewModel) var viewModel: ExplorerViewModel
 
@@ -24,7 +27,7 @@ struct ExplorerView: View {
     @Bindable var viewModel = viewModel
 
     ZStack {
-      ExplorerMainView(source: source, viewModel: viewModel)
+      ExplorerMainView(appCoordinator: appCoordinator, source: source, viewModel: viewModel)
 
       if viewModel.loading {
         ProgressView()
@@ -68,11 +71,12 @@ extension ExplorerView {
 
   struct ExplorerMainView: View {
     @State private var textValue: String = ""
+    @Bindable var appCoordinator: AppCoordinator
     let source: ExplorerSource
     @Bindable var viewModel: ExplorerViewModel
 
     var body: some View {
-      NavigationSplitView(preferredCompactColumn: $viewModel.splitViewColum) {
+      NavigationSplitView(preferredCompactColumn: $appCoordinator.splitViewColum) {
         VStack {
           ExplorerHeaderView()
 
@@ -92,8 +96,16 @@ extension ExplorerView {
         }
         .safeAreaPadding([.leading, .trailing])
       } detail: {
-        ExplorerDetailView()
+        ExplorerDetailView(
+          activities: $viewModel.activities,
+          location: "City"
+        )
       }
+//      .onChange(of: viewModel.splitViewColum) { oldVal, newVal in
+//          if newVal == .sidebar {
+//              print("ljw User navigated back to sidebar")
+//          }
+//      }
       .alert(viewModel.errorDescription, isPresented: $viewModel.haveError, presenting: viewModel) {  viewModel in
         Button("OK") {}
       } message: { error in
