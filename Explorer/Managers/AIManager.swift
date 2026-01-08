@@ -53,7 +53,7 @@ actor AIManager {
   // ljw ---------------------------------
 
   @Generable(description: "A container for a list of items")
-  struct ThingsToDo {
+  struct Activities {
     @Guide(description: "A list of things to do", .count(6...10))
     let items: [Activity]
   }
@@ -76,20 +76,18 @@ actor AIManager {
     let somethingInteresting: String
   }
 
-//  let continuation: AsyncStream<Results>.Continuation
   let logger = Logger(subsystem: "com.moofus.explorer", category: "AIManager")
-//  let stream: AsyncStream<Results>
 
-  //private let instructions: String?
   let instructions = """
                   Your job is to find activities to do and places to go.
                   
                   Always include a short description, and something interesting about the activity or place.
                   """
+  let continuation: AsyncStream<[Activity]>.Continuation
+  let stream: AsyncStream<[Activity]>
 
-  init(instructions: String? = nil) {
-//    self.instructions = instructions
-//    (stream, continuation) = AsyncStream.makeStream(of: Results.self)
+  init() {
+    (stream, continuation) = AsyncStream.makeStream(of: [Activity].self)
   }
 
 
@@ -195,28 +193,25 @@ actor AIManager {
 
 // MARK: - Public Methods
 extension AIManager {
-  func getActivities(cityState: String) async throws -> [Activity] {
+  func findActivities(cityState: String) async throws {
     try isModelAvailable()
 
-    let session: LanguageModelSession
-    //   if let instructions {
-    session = LanguageModelSession(instructions: instructions)
-    //   } else {
-    //     session = LanguageModelSession()
-    //   }
-
+    let session = LanguageModelSession(instructions: instructions)
+    let text = "Generate a list of things to do near \(cityState)"
     do {
-      let text = "Generate a list of things to do near \(cityState)"
-      let response = try await session.respond(to: text, generating: ThingsToDo.self)
-      //    print("ljw response")
-      //    print(response)
-      //      print("ljw items")
-      //      for item in response.content.items {
-      //        print(item)
-      //      }
-      //      print("ljw items end --------------------------------")
-      if !response.content.items.isEmpty {
-        return response.content.items
+      // Streaming partial generations
+      let stream = session.streamResponse(to: text, generating: Activities.self)
+
+      var activities = [Activity]()
+      for try await partial in stream {
+        if let items = partial.content.items {
+          for idx in 0..<items.count {
+            if let activity = partialToFull(activity: items[idx]) {
+              activities.append(activity)
+            }
+          }
+        }
+        continuation.yield(activities)
       }
     }
     catch LanguageModelSession.GenerationError.guardrailViolation(let error) {
@@ -241,14 +236,32 @@ extension AIManager {
       print("Error")
       print(error.localizedDescription) // ljw
     }
-
-    return []
   }
 }
 
-
 // MARK: - Private Methods
 extension AIManager {
+  private func partialToFull(activity: Activity.PartiallyGenerated) -> Activity? {
+    guard let name = activity.name,
+          let address = activity.address,
+          let city = activity.city,
+          let state = activity.state,
+          let category = activity.category,
+          let description = activity.description,
+          let somethingInteresting = activity.somethingInteresting else {
+      return nil
+    }
+    return Activity(
+      name: name,
+      address: address,
+      city: city,
+      state: state,
+      category: category,
+      description: description,
+      somethingInteresting: somethingInteresting
+    )
+  }
+
   private func isModelAvailable() throws {
     switch SystemLanguageModel.default.availability {
     case .available: logger.info("Foundation Models is available and ready to go!")

@@ -33,8 +33,11 @@ final actor ExplorerSource {
   init() {
     print("ljw \(Date()) \(#file):\(#function):\(#line)")
     (stream, continuation) = AsyncStream.makeStream(of: State.self)
-    Task {
-      await handleLocationManager()
+    Task.detached { [weak self] in
+      guard let self else { return }
+      async let aiWait: Void = handleAIManager()
+      async let locationWait: () = handleLocationManager()
+      _ = await(aiWait, locationWait)
     }
   }
 }
@@ -48,7 +51,15 @@ extension ExplorerSource {
     )
     continuation.yield(.error(error))
   }
-  
+
+  private func handleAIManager() async {
+    print("------------------------------")
+    for await activity in aiManager.stream {
+//      print("activity=\(activity)")
+      continuation.yield(.loaded(activity))
+    }
+    print("ljw end ------------------------------")
+  }
   /// Given the CLLocation get the city and state
   /// - Parameter location: the location used to get the city and state
   /// - Returns: the "city, state"
@@ -66,8 +77,7 @@ extension ExplorerSource {
           if let cityState = item.addressRepresentations?.cityWithContext {
             do {
               continuation.yield(.loading(item))
-              let activities = try await aiManager.getActivities(cityState: cityState)
-              continuation.yield(.loaded(activities))
+              try await aiManager.findActivities(cityState: cityState)
             } catch {
               print(error)
               if let error = error as? AIManager.Error {

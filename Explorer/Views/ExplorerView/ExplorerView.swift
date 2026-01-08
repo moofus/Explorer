@@ -72,7 +72,7 @@ extension ExplorerView {
     @Bindable var viewModel: ExplorerViewModel
 
     var body: some View {
-      NavigationSplitView {
+      NavigationSplitView(preferredCompactColumn: $viewModel.splitViewColum) {
         VStack {
           ExplorerHeaderView()
 

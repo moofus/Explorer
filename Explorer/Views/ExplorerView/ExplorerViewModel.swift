@@ -8,6 +8,7 @@
 import Foundation
 import FactoryKit
 import MapKit
+import SwiftUI
 
 @MainActor
 @Observable
@@ -20,6 +21,7 @@ class ExplorerViewModel {
   var haveError = false
   private(set) var loading = false
   private(set) var mkMapItem: MKMapItem?
+  var splitViewColum = NavigationSplitViewColumn.sidebar
 
   init() {
     print("ljw \(Date()) \(#file):\(#function):\(#line)")
@@ -44,8 +46,11 @@ extension ExplorerViewModel {
 
       // Cultural
     case "Culture", "Cultural Experience", "Cultural Neighborhood": "globe"
-    case "Cultural", "Cultural Landmark": "building.columns.fill"
-    case "History", "Historical Site": "house.and.flag.fill"
+    case "Cultural", "Cultural Landmark", "Landmarks": "building.columns.fill"
+    case "Cultural Exploration": "fork.knife.circle.fill" // rotate "building.columns.fill"
+    case "Culture/Food": "fork.knife"
+    case "History", "Historic Site", "Historical Site": "house.and.flag.fill"
+    case "Historical Tour": "house.and.flag.fill" // ljw switch "figure.walk"
 
       // Entertainment
     case "Entertainment": "popcorn.fill"
@@ -53,20 +58,25 @@ extension ExplorerViewModel {
       // Family Activities
     case "Animal Park": "pawprint.fill"
     case "Amusement Parks", "Recreation": "figure.walk" // ferris.wheel.fill
-    case "Science", "Science Museum": "atom"
+    case "Science", "Science and Innovation", "Science & Learning", "Science Museum": "atom"
     case "Island Tour", "Tour": "figure.walk"
+    case "Sightseeing Walk", "Walk": "figure.walk.motion"
     case "Zoos", "Zoo": "pawprint.fill"
 
       // Food & Dining
-    case "Food", "Restaurants": "fork.knife.circle.fill" // fork.knife
+    case "Food", "Food Tour", "Restaurants": "fork.knife.circle.fill" // fork.knife
 
       // Outdoor & Nature
     case "Beaches", "Beach": "beach.umbrella.fill" // water.waves.and.sun.fill
     case "Biking": "bicycle"
+    case "Boating & Dining": "sailboat.fill"
     case "Gardens", "Garden": "leaf.fill"
     case "Hiking", "Nature Reserve", "Outdoor", "Nature & Hiking": "figure.hiking.circle.fill" // mountains.2.fill
-    case "Nature", "Parks", "Park", "Zoological Park": "tree.fill"
-    case "Outdoor Activity", "Outdoor Recreation": "figure.hiking.circle.fill" // mountains.2.fill
+    case "Nature", "Nature & Parks", "Parks", "Park", "Zoological Park": "tree.fill"
+    case "Nature Walk": "figure.walk.motion"
+    case "Outdoor Adventure", "Outdoor Activity", "Outdoor Recreation": "figure.hiking.circle.fill" // mountains.2.fill
+    case "Outdoor Walk": "figure.walk"
+    case "Scenic Views": "camera.viewfinder"
     case "Sightseeing": "bus.fill"
 
       // Services & Other
@@ -227,11 +237,13 @@ extension ExplorerViewModel {
       case .initial:
         break
       case .loaded(let activies):
-        print("loaded items")
+        print("loaded activities")
         print(activies)
-        for activity in activies {
-          print("category=\(activity.category) image=\(categoryToImageName(category: activity.category))")
-        }
+//        for activity in activies {
+//          print("category=\(activity.category) image=\(categoryToImageName(category: activity.category))")
+//        }
+        splitViewColum = .detail
+
       case .loading(let mkMapItem):
         print("loading")
         self.mkMapItem = mkMapItem
