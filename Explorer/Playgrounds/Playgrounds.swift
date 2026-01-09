@@ -9,20 +9,56 @@
 import Foundation
 import FoundationModels
 import Playgrounds
-import CoreLocation
-import Foundation
+import MapKit
 
 #Playground {
-  let aiManager = AIManager()
-  do {
-    try await aiManager.findActivities(cityState: "Oakland, CA")
-  } catch {
-    if let error = error as? AIManager.Error {
-      print("ljw error=\(error)")
-    } else {
-      print("unknown error")
-    }
-  }
+
+//  let request = MKLocalSearch.Request()
+//  request.naturalLanguageQuery = "6825 Elverton Drive, Oakland, CA"
+//
+//  // Limits the search to specific types if needed
+//  request.resultTypes = .address
+//
+//  let search = MKLocalSearch(request: request)
+//  let response = try await search.start()
+//
+//  // Returns the coordinate of the most relevant result
+////  print(response.mapItems.first?.placemark.coordinate)
+//  print(response.mapItems.first?.placemark.coordinate)
+
+
+
+//  let request = MKGeocodingRequest(addressString: "6825 Elverton Drive, Oakland, CA")
+//      let usRegion = MKCoordinateRegion( // use my location
+// //       center: CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795), // Approx center of US
+  //        center: CLLocationCoordinate2D(latitude: 37.78583880, longitude: -122.20234210), // Union Square SF
+  //        center: CLLocationCoordinate2D(latitude: 37.84663652, longitude: -122.20239821), // my home Oakland
+//          span: MKCoordinateSpan(latitudeDelta: 40, longitudeDelta: 60) // Wide span for US
+//      )
+////      request?.region = usRegion
+//
+//      // Execute the request
+//      let mapItem = (try await request?.mapItems.first)!
+//  
+//      // Extract the coordinate from the first result
+//  print(mapItem.placemark.location)
+//  print(mapItem)
+  //    print("city=\(mapItem.addressRepresentations?.cityName ?? "home")")
+  //    print("cityWithContext=\(mapItem.addressRepresentations?.cityWithContext ?? "City, State")")
+  //    print("regionName=\(mapItem.addressRepresentations?.regionName ?? "Country")")
+  //    print("region=\(mapItem.addressRepresentations?.region ?? "Country")")
+
+
+  //  let aiManager = AIManager()
+//  do {
+//    try await aiManager.findActivities(cityState: "Oakland, CA")
+//  } catch {
+//    if let error = error as? AIManager.Error {
+//      print("ljw error=\(error)")
+//    } else {
+//      print("unknown error")
+//    }
+//  }
 //  let source = ExplorerSource()
 //  Task {
 //    do {
@@ -34,6 +70,36 @@ import Foundation
 //    }
 //  }
 
+
+  //  let searchRequest = MKLocalSearch.Request()
+  //  searchRequest.naturalLanguageQuery = "Starbucks near me"
+  ////  searchRequest.naturalLanguageQuery = "94611"
+  //  // Optional: Define a specific region to search within
+  //  // searchRequest.region = mapView.region
+  //
+  //  Task {
+  //    do {
+  //      let response = try await MKLocalSearch(request: searchRequest).start()
+  //      for item in response.mapItems {
+  //        print("----------------------------------")
+  //        print("Name: \(item.name ?? "")")
+  //        print("Address.description: \(item.address?.description)")
+  //        print("Address.fullAddress: \(item.address?.fullAddress)")
+  //        print("Address.shortAddress: \(item.address?.shortAddress)")
+  //        let coordinate = item.location.coordinate
+  //        print("Location: \(coordinate.latitude), \(coordinate.longitude)")
+  //      }
+  //    } catch {
+  //      print("Search failed: \(error.localizedDescription)")
+  //    }
+  //  }
+  //  ----------------------------------
+  //  Name: Starbucks
+  //  Address.description: Optional("<MKAddress: 0x60000023a640> {\n    fullAddress = \"13808 E 14th St, San Leandro, CA  94578, United States\";\n    shortAddress = \"13808 E 14th St, San Leandro\";\n}")
+  //  Address.fullAddress: Optional("13808 E 14th St, San Leandro, CA  94578, United States")
+  //  Address.shortAddress: Optional("13808 E 14th St, San Leandro")
+  //  Location: 37.7147697, -122.14176
+  //  ----------------------------------
 
 
 //  func determineCityStateExistence(city: String, state: String, completion: @escaping (Bool) -> Void) {
@@ -86,3 +152,4 @@ import Foundation
 }
 
 #endif // DEBUG
+

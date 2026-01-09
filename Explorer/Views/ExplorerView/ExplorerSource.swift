@@ -6,7 +6,6 @@
 //
 
 import Foundation
-
 import FactoryKit
 import MapKit
 
@@ -28,6 +27,7 @@ final actor ExplorerSource {
   @Injected(\.locationManager) var locationManager: LocationManager
 
   private let continuation: AsyncStream<State>.Continuation
+  private(set) var locationToSearch = CLLocation()
   let stream: AsyncStream<State>
 
   init() {
@@ -53,17 +53,15 @@ extension ExplorerSource {
   }
 
   private func handleAIManager() async {
-    print("------------------------------")
-    for await activity in aiManager.stream {
-//      print("activity=\(activity)")
-      continuation.yield(.loaded(activity))
+    for await activities in aiManager.stream {
+      continuation.yield(.loaded(activities))
     }
-    print("ljw end ------------------------------")
   }
   /// Given the CLLocation get the city and state
   /// - Parameter location: the location used to get the city and state
   /// - Returns: the "city, state"
   private func handle(location: CLLocation) async {
+    self.locationToSearch = location
     if let request = MKReverseGeocodingRequest(location: location) {
       do {
         let mapItems = try await request.mapItems
@@ -76,9 +74,10 @@ extension ExplorerSource {
           print("region=\(item.addressRepresentations?.region ?? "Country")")
           if let cityState = item.addressRepresentations?.cityWithContext {
             do {
-              continuation.yield(.loading(item))
+              continuation.yield(.loading(item)) // to display on map
               try await aiManager.findActivities(cityState: cityState)
             } catch {
+              print("ljw \(Date()) \(#file):\(#function):\(#line)")
               print(error)
               if let error = error as? AIManager.Error {
                 let error = SourceError.location(

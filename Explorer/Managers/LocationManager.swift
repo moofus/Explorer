@@ -135,6 +135,7 @@ extension LocationManager {
       } catch {
         print("ljw \(Date()) \(#file):\(#function):\(#line)")
         print("error=\(error)")
+        assertionFailure() // ljw
       }
       started = false
       logger.info("LocationManager stopped")
