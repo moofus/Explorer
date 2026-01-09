@@ -28,12 +28,10 @@ class ExplorerViewModel {
     let somethingInteresting: String
     let state: String
   }
-
-  @ObservationIgnored
-  @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
+  
   @ObservationIgnored
   @Injected(\.explorerSource) var source: ExplorerSource
-
+  
   var activities = [Activity]()
   private(set) var errorDescription = ""
   private(set) var errorRecoverySuggestion = ""
@@ -41,8 +39,8 @@ class ExplorerViewModel {
   private(set) var loading = false
   private let logger = Logger(subsystem: "com.moofus.explorer", category: "ddd")
   private(set) var mkMapItem: MKMapItem?
-  private var addressToLocation = [String: CLLocation]()
-
+  private var addressToLocationCache = [String: CLLocation]()
+  
   init() {
     print("ljw \(Date()) \(#file):\(#function):\(#line)")
     Task { await handleSource() }
@@ -51,11 +49,11 @@ class ExplorerViewModel {
 
 // MARK: - Private Methods
 extension ExplorerViewModel {
-
+  
   // Returns the coordinate of the most relevant result
   private func getDistance(from activity: AIManager.Activity) async throws -> Double {
     let activityLocation: CLLocation
-    if let addressToLocation = addressToLocation[activity.address] {
+    if let addressToLocation = addressToLocationCache[activity.address] {
       activityLocation = addressToLocation
     } else {
       let request = MKLocalSearch.Request()
@@ -67,7 +65,7 @@ extension ExplorerViewModel {
         return activity.distance
       }
       activityLocation = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-      addressToLocation[activity.address] = activityLocation
+      addressToLocationCache[activity.address] = activityLocation
     }
     let locationToSearch = await source.locationToSearch
     let meters = activityLocation.distance(from: locationToSearch)
@@ -75,96 +73,140 @@ extension ExplorerViewModel {
     let distanceInMiles = distanceInMeters.converted(to: UnitLength.miles)
     return distanceInMiles.value
   }
-
+  
   private func imageName(from category: String) -> String {
     return switch category {
       // Culture
-    //Discover the largest Chinatown outside of Asia, filled with shops, restaurants, and cultural landmarks.
+      //Discover the largest Chinatown outside of Asia, filled with shops, restaurants, and cultural landmarks.
     case "Cultural Experience": "storefront.fill" // rotate fork.knife.circle.fill
+    //Former federal prison known for its escape attempts and cinematic history.
+    case "History & Culture": "lock.fill"
+    //Haight-Ashbury was the epicenter of the 1960s counterculture movement, with its iconic red-bricked streets and historic sites like the Avalon Ballroom.
+    case "History/Music": "house.and.flag.fill"
 
-    //Walk through the historic district known for its role in the 1960s counterculture movement, with vintage shops and cafes.
+      // Culture & Arts
+    //A leading museum featuring works by modern and contemporary artists.
+    case "Art": "paintpalette.fill" // rotate building.columns photo.artframe
+    //Explore vibrant murals, eclectic shops, and diverse dining options in this lively neighborhood."
+    case "Art & Cuisine": "paintpalette.fill" // rotate "fork.knife" fork.knife.circle.fill
+
+      //Discover street art, unique shops, and vibrant cultural events in this eclectic neighborhood.
+    case "Arts & Culture": "paintpalette.fill" // rotate storefront.fill
+      //Discover the oldest and largest Chinatown in North America, filled with unique shops and authentic dining.
+    case "Culture & Cuisine", "Culture and Cuisine": "storefront.fill" // rotate "fork.knife" cart.fill
+      
+      
+      //Walk through the historic district known for its role in the 1960s counterculture movement, with vintage shops and cafes.
     case "Historical & Cultural": "bag.fill" // rotate "fork.knife", "figure.walk"
-    //A preserved maritime area with historic ships and exhibits.
+      //A preserved maritime area with historic ships and exhibits.
     case "Maritime History": "sailboat.fill" // rotate
+    //An interactive science museum perfect for families, featuring hands-on exhibits and engaging displays.
+    case "Museum": "building.columns.fill" // rotate "paintpalette.fill"
 
-    //Take a ferry to explore the historic former prison known for its intriguing past.
+      //Take a ferry to explore the historic former prison known for its intriguing past.
     case "Historical Tour": "ferry.fill" // ljw switch "figure.walk" "house.and.flag.fill"
 
       // Culture & Arts
-    //Explore this eclectic neighborhood known for its murals, cafes, and vibrant arts scene.
+      //Explore this eclectic neighborhood known for its murals, cafes, and vibrant arts scene.
     case "Arts and Culture": "paintpalette.fill" // rotate "building.2.fill"
-
-//    // Discover vibrant murals, eclectic shops, and a thriving food scene.
-//    case "Art and Cuisine", "Art & Cuisine": "fork.knife"
-    //A vibrant neighborhood with a rich Chinese cultural heritage, famous for its food and shops."
+      
+      //    // Discover vibrant murals, eclectic shops, and a thriving food scene.
+      //    case "Art and Cuisine": "fork.knife"
+      //A vibrant neighborhood with a rich Chinese cultural heritage, famous for its food and shops."
     case "Cultural District": "fork.knife" // rotate storefront.fill
-//    //Experience the oldest and largest Chinatown in North America with its vibrant markets, temples, and diverse cuisine."
-//    case "Culture and Cuisine", "Culture & Cuisine": "fork.knife" // rotate
-
+      
       // Family Activities
-    //Famous for its steep, winding road, it's a must-see for photography enthusiasts
+      //Famous for its steep, winding road, it's a must-see for photography enthusiasts
     case "Architecture and Travel": "binoculars.fill" // rotate "camera.viewfinder", car.fill
-    //Enjoy serene walking paths surrounded by beautiful native plants and gardens.
+      //Enjoy serene walking paths surrounded by beautiful native plants and gardens.
+    //Take a ferry or boat tour to explore this charming town across the Golden Gate Bridge.
+    case "Boat Tour": "sailboat.fill"
     case "Botanical Garden": "leaf.fill" // rotate "figure.walk.motion"
-    //Visit this interactive science museum with hands-on exhibits and engaging displays."
+    //A must-see suspension bridge offering breathtaking views.
+    case "Iconic Landmark": "camera.viewfinder" // rotate "binoculars.fill"
+    //Walk down this famous crooked street with steep, winding turns.
+    case "Landmark": "figure.walk" // rotate
+
+      //Park is a large urban park in San Francisco, known for its beautiful gardens, museums, and cultural institutions.
+    case "Park Golden Gate": "tree.fill"
+      //Visit Coit Tower for panoramic views of San Francisco and its Golden Gate Bridge.
+    case "Scenic Viewpoint": "camera.viewfinder" // rotate "binoculars.fill"
+      //Explore the iconic pier, enjoy fresh seafood, and watch sea lions lounging on the docks.
+    case "Seafood Dining": "fork.knife.circle.fill" // fork.knife
+      //Visit this interactive science museum with hands-on exhibits and engaging displays."
     case "Science/Education": "atom"
-    //Engage with interactive exhibits and hands-on science and technology displays.
+      //Engage with interactive exhibits and hands-on science and technology displays.
     case "Science & Education": "atom"
-    //Engage with interactive exhibits and hands-on science displays perfect for all ages.
+      //Engage with interactive exhibits and hands-on science displays perfect for all ages.
     case "Science Museum": "atom" // rotate
-    //Enjoy stunning views of the Golden Gate Bridge and the bay while walking or biking across this iconic structure.
-    case "Walking Tour": "figure.walk.motion" // rotate bicycle
+      //Enjoy stunning views of the Golden Gate Bridge and the bay while walking or biking across this iconic structure.
+    case "Walking Tour": "figure.walk" // rotate bicycle "camera.viewfinder" // "binoculars.fill"
       //    //Engage with interactive exhibits that explore science, art, and human perception.
-//    case "Science and Education", "Science & Education": "atom"
+      //Enjoy scenic views of the San Francisco Bay and Alcatraz.
+    case "Water Activities": "binoculars.fill" // rotate camera.viewfinder
+      
+      //    case "Science and Education", "Science & Education": "atom"
       //Explore this lively waterfront area known for its seafood, shops, and sea lions lounging on Pier 39.
-      case "Shopping": "storefront.fill" // rotate cart.fill
-//    //Stroll or bike across the iconic suspension bridge offering breathtaking views of the bay and city.
-//    case "Iconic Views": "binoculars.fill" // rotate "camera.viewfinder"
+    case "Shopping": "storefront.fill" // rotate cart.fill
+      //    //Stroll or bike across the iconic suspension bridge offering breathtaking views of the bay and city.
+      //    case "Iconic Views": "binoculars.fill" // rotate "camera.viewfinder"
+      
+      // Food & Dining
+    //Explore the vibrant waterfront with seafood restaurants and shops."
+    case "Dining and Shopping": "fork.knife.circle.fill" // fork.knife "storefront.fill"
+
 
       // Outdoor & Nature
-    //Enjoy a scenic hike with breathtaking views of the Pacific Ocean and the city skyline.
+      //Enjoy a scenic hike with breathtaking views of the Pacific Ocean and the city skyline.
     case "Hiking": "figure.hiking.circle.fill" // rotate tree.fill mountains.2.fill
-    //Stroll along the scenic paths with stunning views of the bridge and the bay.
+      //Hike through a lush redwood forest, a natural wonder unlike any other.
+    case "Nature and Hiking": "figure.hiking.circle.fill" // rotate tree.fill
+      //Stroll along the scenic paths with stunning views of the bridge and the bay.
     case "Outdoor Walk": "figure.hiking.circle.fill" // rotate mountains.2.fill "figure.walk"
-
-//    //Hike through a lush redwood forest with towering trees and breathtaking views.
-//    case "Nature and Hiking", "Nature & Hiking": "figure.hiking.circle.fill" // rotate tree.fill
-
-
-    //Visit this historic observation tower for panoramic views of the city and Golden Gate Bridge.
+      //Hike through a lush redwood forest with towering trees and breathtaking views.
+    case "Nature & Hiking": "figure.hiking.circle.fill" // rotate tree.fill
+      //This expansive area offers stunning coastal views, hiking trails, and scenic vistas along the Pacific Ocean.
+    case "Outdoor Activities": "figure.hiking.circle.fill" // mountains.2.fill "tent.2.fill"
+      
+      
+      //Visit this historic observation tower for panoramic views of the city and Golden Gate Bridge.
     case "Historical Landmark": "house.and.flag.fill" // ljw switch "figure.walk"
-    //Visit this Beaux-Arts structure that was originally built for the 1915 Panama-Pacific International Exposition.
+      //Visit this Beaux-Arts structure that was originally built for the 1915 Panama-Pacific International Exposition.
     case "Historic Sites": "house.and.flag.fill" // ljw switch "figure.walk"
-
+      
       // Services & Other
-//    //Experience the historic charm of San Francisco by riding one of its iconic cable cars.
-//    case "Public Transit", "Public Transport": "bus.fill"
+    //Experience the historic charm of San Francisco by riding one of its iconic cable cars.
+    case "Iconic Ride": "cablecar.fill"
 
+      //    //Experience the historic charm of San Francisco by riding one of its iconic cable cars.
+    case "Public Transit","Public Transport": "bus.fill"
+      
       // Shopping & Fashion
-    //Explore this vibrant waterfront area filled with shops, restaurants, and attractions like Pier 39 and sea lions.
+      //Explore this vibrant waterfront area filled with shops, restaurants, and attractions like Pier 39 and sea lions.
     case "Shopping and Dining": "storefront.fill" // rotate "fork.knife.circle.fill"  "bag.fill"
-
-    //A bustling waterfront area with seafood restaurants, shops, and attractions like Pier 39.
+      
+      //A bustling waterfront area with seafood restaurants, shops, and attractions like Pier 39.
     case "Shopping & Dining": "fork.knife.circle.fill" // rotate "storefront.fill", "bag.fill" // ljw rotate dinning
-//    //District A bustling area filled with shops, restaurants, and attractions like Pier 39 and the sea lions.
-//    case "Shopping/Dining", "Shopping and Dining", "Shopping & Dining": "bag.fill" // ljw rotate dinning
-//    case "Shopping and Dining District", "Shopping & Dining District":  "bag.fill" // ljw rotate dinning
-
-
-
-      ////////////////////////////////////////////////////////////////////
+      //    //District A bustling area filled with shops, restaurants, and attractions like Pier 39 and the sea lions.
+      //Explore this vibrant waterfront area with shops, restaurants, and street performers.
+    case "Shopping/Dining": "fork.knife" // rotate storefront.fill
+      
+      //    case "Shopping and Dining", "Shopping & Dining": "bag.fill" // ljw rotate dinning
+      //    case "Shopping and Dining District", "Shopping & Dining District":  "bag.fill" // ljw rotate dinning
+      
+      
+      
+////////////////////////////////////////////////////////////////////
       // Culture & Arts
-
-//    case "Art", "Arts & Culture": "paintpalette.fill" // rotate "building.2.fill"
-    case "Art Gallery", "Galleries": "photo.fill.on.rectangle.fill" // frame.3.fill
-    case "Concert Halls": "music.note.house.fill"
-    case "Architecture", "Geographical Landmark", "History and Culture", "History & Culture", "Landmark", "Scenic": "mappin.circle.fill"
-    case "Museum", "Museums": "building.2.fill" // rotate "paintpalette.fill"
+      //    case "Art Gallery", "Galleries": "photo.fill.on.rectangle.fill" // frame.3.fill
+      //    case "Concert Halls": "music.note.house.fill"
+//    case "Architecture", "Geographical Landmark", "History and Culture", "Landmark", "Scenic": "mappin.circle.fill"
+//    case "Museums": "building.2.fill" // rotate "paintpalette.fill"
     case "Performing Arts": "theatermasks"
     case "Theaters", "Theater": "theatermasks.fill"
-
+      
       // Cultural
-    case "Culture", "Cultural Experience", "Cultural Neighborhood": "globe"
+    case "Culture", "Cultural Neighborhood": "globe"
     case "Cultural", "Cultural Landmark", "Landmarks": "building.columns.fill"
     case "Cultural and Arts", "Cultural & Arts": "paintpalette.fill" // rotate "building.2.fill"
     case "Cultural Exploration": "fork.knife.circle.fill" // rotate "building.columns.fill"
@@ -173,22 +215,22 @@ extension ExplorerViewModel {
     case "Culture/Food", "Food & Culture": "fork.knife"
     case "History", "Historic Landmark", "Historic Site", "Historical Site", "Island": "house.and.flag.fill"
     case "Historical", "Historic District", "Iconic Street": "house.and.flag.fill" // ljw switch "figure.walk"
-
+      
       // Entertainment
     case "Entertainment": "popcorn.fill"
-
+      
       // Family Activities
     case "Animal Park": "pawprint.fill"
     case "Amusement Parks", "Recreation": "figure.walk" // ferris.wheel.fill
     case "Beach Day": "beach.umbrella.fill"
     case "Historic Tour", "Island Tour", "Tour": "figure.walk"
-    case "Science", "Science and Innovation", "Science & Innovation", "Science and Learning", "Science & Learning", "Science Museum": "atom"
+    case "Science", "Science and Innovation", "Science & Innovation", "Science and Learning", "Science & Learning": "atom"
     case "Sightseeing Walk", "Walk": "figure.walk.motion"
     case "Zoos", "Zoo": "pawprint.fill"
-
+      
       // Food & Dining
     case "Food", "Food Tour", "Restaurants": "fork.knife.circle.fill" // fork.knife
-
+      
       // Outdoor & Nature
     case "Beaches", "Beach": "beach.umbrella.fill" // water.waves.and.sun.fill
     case "Biking": "bicycle"
@@ -199,172 +241,165 @@ extension ExplorerViewModel {
     case "Parks", "Park", "Zoological Park": "tree.fill"
     case "Nature Tour", "Nature Walk": "figure.walk.motion"
     case "Outdoor Adventure", "Outdoor Activity", "Outdoor Recreation": "figure.hiking.circle.fill" // mountains.2.fill
-    case "Outdoor Walk", "Scenic Walk": "figure.walk"
+    case "Scenic Walk": "figure.walk"
     case "Scenic Views": "camera.viewfinder"
     case "Sightseeing": "bus.fill"
     case "Viewpoint": "binoculars.fill"
-
+      
       // Services & Other
     case "Scenic Drive": "car.fill"
     case "Transportation": "car.fill"
-
+      
       // Shopping & Fashion
     case "Markets", "Market": "carrot.fill"
     case "Neighborhood": "bag.fill" // ljw rotate dinning
-
-
-
+      
+      
+      
       //////////////////////////////////////// ljw
       // Food & Dining
-//    case "Restaurants":
-//       "fork.knife"
-//    case "Cafes":
-//       "cup.and.saucer.fill"
-//    case "Bars":
-//       "wineglass.fill"
-//    case "Bakeries":
-//       "birthday.cake"
-//    case "Food Trucks":
-//       "truck.box.fill" // caravan.fill
-//    case "Pizza":
-//       "fork.knife"
-//
-//      // Outdoor & Nature
-//    case "Camping":
-//       "tent.2.fill"
-//
-//      // Culture & Arts
-//    case "Concert Halls":
-//       "music.note.house.fill"
-//    case "Libraries":
-//       "books.vertical.fill"
-//    case "Art Exhibits":
-//       "paintpalette.fill"
-//
-//      // Entertainment
-//    case "Entertainment":
-//       "popcorn.fill"
-//    case "Movies":
-//       "movieclapper.fill" // film.stack or film.fill
-//    case "Comedy Clubs":
-//       "person.wave.2.fill"
-//    case "Theme Parks":
-//       "ticket.fill"
-//    case "Bowling":
-//       "figure.bowling.circle.fill" // or circle.circle.fill
-//    case "Arcade Games":
-//       "gamecontroller.fill"
-//    case "Escape Rooms":
-//       "lock.fill"
-//    case "Karaoke":
-//       "music.mic"
-//
-//      // Sports & Recreation
-//    case "Gyms":
-//       "dumbbell.fill"
-//    case "Yoga":
-//       "figure.yoga.circle.fill" // moon.yoga
-//    case "Swimming":
-//       "figure.pool.swim"
-//    case "Sports":
-//       "figure.basketball"
-//    case "Tennis":
-//       "figure.tennis.circle.fill" // tennis.racket
-//    case "Golf":
-//       "figure.golf" // flag.circle.fill
-//    case "Skateparks":
-//       "skateboard.fill"
-//
-//      // Shopping & Fashion
-//    case "Shopping":
-//       "bag.fill"
-//    case "Malls":
-//       "building.2.fill"
-//    case "Boutiques":
-//       "handbag.fill"
-//    case "Bookstores":
-//       "books.vertical.fill"
-//    case "Antique Shops":
-//       "hourglass"
-//
-//      // Nightlife
-//    case "Nightlife":
-//       "moon.stars.fill"
-//    case "Clubs":
-//       "music.note.list"
-//    case "Lounges":
-//       "sofa.fill"
-//    case "Pubs":
-//       "mug.fill" // beer.mug.fill
-//    case "Dance Clubs":
-//       "figure.socialdance.circle.fill" // figure.dance
-//      // Wellness & Health
-//    case "Spas":
-//       "sparkles"
-//    case "Massage":
-//       "carseat.right.massage.fill" // hand.massaged
-//    case "Beauty Salons":
-//       "comb.fill"
-//    case "Health Clinics":
-//       "cross.fill"
-//
-//      // Family Activities
-//    case "Playgrounds":
-//       "figure.play"
-//    case "Aquariums":
-//       "fish.fill"
-//    case "Children's Activities":
-//       "figure.child"
-//
-//      // Education
-//    case "Schools":
-//       "long.text.page.and.pencil" // building.with.badge.and.wrench.fill
-//    case "Colleges":
-//       "graduationcap.fill"
-//    case "Workshops":
-//       "hammer.circle.fill"
-//    case "Classes":
-//       "book.fill"
-//
-//      // Services & Other
-//    case "Hotels":
-//       "building.fill"
-//    case "Photography":
-//       "camera.fill"
-//    case "Events":
-//       "calendar.circle.fill"
-//    case "Tours":
-//       "binoculars.fill"
-//    case "Adventure":
-//       "airplane"
+      //    case "Restaurants":
+      //       "fork.knife"
+      //    case "Cafes":
+      //       "cup.and.saucer.fill"
+      //    case "Bars":
+      //       "wineglass.fill"
+      //    case "Bakeries":
+      //       "birthday.cake"
+      //    case "Food Trucks":
+      //       "truck.box.fill" // caravan.fill
+      //    case "Pizza":
+      //       "fork.knife"
+      //
+      //      // Outdoor & Nature
+      //    case "Camping":
+      //       "tent.2.fill"
+      //
+      //      // Culture & Arts
+      //    case "Concert Halls":
+      //       "music.note.house.fill"
+      //    case "Libraries":
+      //       "books.vertical.fill"
+      //    case "Art Exhibits":
+      //       "paintpalette.fill"
+      //
+      //      // Entertainment
+      //    case "Entertainment":
+      //       "popcorn.fill"
+      //    case "Movies":
+      //       "movieclapper.fill" // film.stack or film.fill
+      //    case "Comedy Clubs":
+      //       "person.wave.2.fill"
+      //    case "Theme Parks":
+      //       "ticket.fill"
+      //    case "Bowling":
+      //       "figure.bowling.circle.fill" // or circle.circle.fill
+      //    case "Arcade Games":
+      //       "gamecontroller.fill"
+      //    case "Escape Rooms":
+      //       "lock.fill"
+      //    case "Karaoke":
+      //       "music.mic"
+      //
+      //      // Sports & Recreation
+      //    case "Gyms":
+      //       "dumbbell.fill"
+      //    case "Yoga":
+      //       "figure.yoga.circle.fill" // moon.yoga
+      //    case "Swimming":
+      //       "figure.pool.swim"
+      //    case "Sports":
+      //       "figure.basketball"
+      //    case "Tennis":
+      //       "figure.tennis.circle.fill" // tennis.racket
+      //    case "Golf":
+      //       "figure.golf" // flag.circle.fill
+      //    case "Skateparks":
+      //       "skateboard.fill"
+      //
+      //      // Shopping & Fashion
+      //    case "Shopping":
+      //       "bag.fill"
+      //    case "Malls":
+      //       "building.2.fill"
+      //    case "Boutiques":
+      //       "handbag.fill"
+      //    case "Bookstores":
+      //       "books.vertical.fill"
+      //    case "Antique Shops":
+      //       "hourglass"
+      //
+      //      // Nightlife
+      //    case "Nightlife":
+      //       "moon.stars.fill"
+      //    case "Clubs":
+      //       "music.note.list"
+      //    case "Lounges":
+      //       "sofa.fill"
+      //    case "Pubs":
+      //       "mug.fill" // beer.mug.fill
+      //    case "Dance Clubs":
+      //       "figure.socialdance.circle.fill" // figure.dance
+      //      // Wellness & Health
+      //    case "Spas":
+      //       "sparkles"
+      //    case "Massage":
+      //       "carseat.right.massage.fill" // hand.massaged
+      //    case "Beauty Salons":
+      //       "comb.fill"
+      //    case "Health Clinics":
+      //       "cross.fill"
+      //
+      //      // Family Activities
+      //    case "Playgrounds":
+      //       "figure.play"
+      //    case "Aquariums":
+      //       "fish.fill"
+      //    case "Children's Activities":
+      //       "figure.child"
+      //
+      //      // Education
+      //    case "Schools":
+      //       "long.text.page.and.pencil" // building.with.badge.and.wrench.fill
+      //    case "Colleges":
+      //       "graduationcap.fill"
+      //    case "Workshops":
+      //       "hammer.circle.fill"
+      //    case "Classes":
+      //       "book.fill"
+      //
+      //      // Services & Other
+      //    case "Hotels":
+      //       "building.fill"
+      //    case "Photography":
+      //       "camera.fill"
+      //    case "Events":
+      //       "calendar.circle.fill"
+      //    case "Tours":
+      //       "binoculars.fill"
+      //    case "Adventure":
+      //       "airplane"
     default:
       fatalError("category=\(category)") // ljw
       // "mappin.circle.fill"
     }
   }
-
+  
   private func convert(activities: [AIManager.Activity]) async -> [Activity] {
     var result = [Activity]()
     for activity in activities {
       print("category: ", activity.category, activity.description)
+      print(activity.somethingInteresting)
       let distance: Double
       do {
         distance = try await getDistance(from: activity)
       } catch {
         logger.error("\(error.localizedDescription)")
-        assertionFailure() // ljw
+//        assertionFailure() // ljw
         distance = activity.distance
       }
       let imageName = imageName(from: activity.category)
-
-      /*
-       // 3. Calculate the distance (returns meters as a Double)
-       let distanceInMeters = location1.distance(from: location2)
-
-       print("Distance: \(distanceInMeters) meters")
-       print("Distance: \(distanceInMeters / 1000) kilometers")
-
-       */
+      
       result.append(
         Activity(
           address: activity.address,
@@ -383,11 +418,11 @@ extension ExplorerViewModel {
     }
     return result
   }
-
+  
   private func handleSource() async {
     for await state in source.stream {
       loading = false
-
+      
       switch state {
       case .error(let error):
         if case let .location(description, recoverySuggestion) = error {
@@ -401,16 +436,15 @@ extension ExplorerViewModel {
         }
         haveError = true
       case .initial:
-        break
+        self.mkMapItem = nil
       case .loaded(let activities):
-//        print(activities)
+        //        print(activities)
+        print("loaded")
         self.activities = await convert(activities: activities)
+        self.mkMapItem = nil
+        
         print("loaded activities count=\(self.activities.count) \(activities.count)")
-
-        if !self.activities.isEmpty {
-          appCoordinator.navigate(to: .detail)
-        }
-
+        
       case .loading(let mkMapItem):
         print("loading")
         self.mkMapItem = mkMapItem

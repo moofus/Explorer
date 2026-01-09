@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+@MainActor
 @Observable
 class AppCoordinator {
   typealias Activity = ExplorerViewModel.Activity
@@ -19,7 +20,7 @@ class AppCoordinator {
   }
 
   init() {
-    self.splitViewColum = NavigationSplitViewColumn.sidebar
+    self.splitViewColum = .sidebar
   }
 
   var splitViewColum: NavigationSplitViewColumn

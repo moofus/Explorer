@@ -28,7 +28,7 @@ struct FindActivitiesButton: View {
       }
     } label: {
       if isPerformingTask {
-        ProgressView()
+//ljw        ProgressView()
       } else {
         Label {
           Text(text)

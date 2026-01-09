@@ -26,16 +26,19 @@ struct ExplorerView: View {
   var body: some View {
     @Bindable var viewModel = viewModel
 
+    let _ = print("ljw loading=\(viewModel.loading) \(Date()) \(#file):\(#function):\(#line)")
+
     ZStack {
       ExplorerMainView(appCoordinator: appCoordinator, source: source, viewModel: viewModel)
 
       if viewModel.loading {
-        ProgressView()
-          .controlSize(.extraLarge)
-          .padding()
-          .tint(.accent)
-          .background(Color.gray.opacity(0.5))
-          .border(Color.yellow, width: 2)
+        Label("Using Apple Intelligent", image: "sparkles")
+//        ProgressView()
+//          .controlSize(.extraLarge)
+//          .padding()
+//          .tint(.accent)
+//          .background(Color.gray.opacity(0.5))
+//          .border(Color.yellow, width: 2)
       }
     }
   }
@@ -101,11 +104,6 @@ extension ExplorerView {
           location: "City"
         )
       }
-//      .onChange(of: viewModel.splitViewColum) { oldVal, newVal in
-//          if newVal == .sidebar {
-//              print("ljw User navigated back to sidebar")
-//          }
-//      }
       .alert(viewModel.errorDescription, isPresented: $viewModel.haveError, presenting: viewModel) {  viewModel in
         Button("OK") {}
       } message: { error in

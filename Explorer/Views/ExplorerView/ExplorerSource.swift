@@ -8,6 +8,7 @@
 import Foundation
 import FactoryKit
 import MapKit
+import SwiftUI
 
 final actor ExplorerSource {
   enum SourceError: Error {
@@ -39,7 +40,32 @@ final actor ExplorerSource {
       async let locationWait: () = handleLocationManager()
       _ = await(aiWait, locationWait)
     }
+
+    Task { @MainActor in
+      @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
+
+      await monitorChanges(appCoordinator: appCoordinator)
+    }
   }
+
+  @MainActor
+  func monitorChanges(appCoordinator: AppCoordinator) async {
+    withObservationTracking {
+//      print("ljw splitViewColum = \(appCoordinator.splitViewColum)")
+//      print("ljw \(Date()) \(#file):\(#function):\(#line)")
+    } onChange: {
+      Task { @MainActor in
+//        print("ljw changed splitViewColum = \(appCoordinator.splitViewColum)")
+//        if appCoordinator.splitViewColum == .sidebar {
+//          self.continuation.yield(.initial) // to clear mapItem for the next presentation
+//        }
+
+      }
+
+//      print("ljw \(Date()) \(#file):\(#function):\(#line)")
+    }
+  }
+
 }
 
 // MARK: - Private Location Methods
@@ -54,7 +80,11 @@ extension ExplorerSource {
 
   private func handleAIManager() async {
     for await activities in aiManager.stream {
-      continuation.yield(.loaded(activities))
+      continuation.yield(.loaded(activities)) // ljw handle activities.isEmpty
+      Task { @MainActor in
+        @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
+        appCoordinator.navigate(to: .detail)
+      }
     }
   }
   /// Given the CLLocation get the city and state
@@ -62,7 +92,7 @@ extension ExplorerSource {
   /// - Returns: the "city, state"
   private func handle(location: CLLocation) async {
     self.locationToSearch = location
-    if let request = MKReverseGeocodingRequest(location: location) {
+    if let request = MKReverseGeocodingRequest(location: location) { // ljw use cache
       do {
         let mapItems = try await request.mapItems
         print("mapItems.count=\(mapItems.count)")
@@ -92,6 +122,8 @@ extension ExplorerSource {
             }
             return
           }
+        } else {
+          // ljw handle
         }
       } catch {
         print("Error MKReverseGeocodingRequest: \(error)")
