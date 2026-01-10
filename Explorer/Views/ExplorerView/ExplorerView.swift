@@ -92,14 +92,17 @@ extension ExplorerView {
           Spacer()
         }
         .searchable(text: $searchText, prompt: "Search City, State, or Zip")
+        .onSubmit(of: .search) {
+          print("ljw search \(searchText) \(Date()) \(#file):\(#function):\(#line)")
+        }
         .safeAreaPadding([.leading, .trailing])
       } content: {
         ZStack {
+          Text("Please preform a search")
           ExplorerDetailView(
             activities: $viewModel.activities,
             location: "City"
           )
-          Text("Please preform a search")
         }
       } detail: {
         Text("DetailView")

@@ -81,9 +81,11 @@ extension ExplorerSource {
   private func handleAIManager() async {
     for await activities in aiManager.stream {
       continuation.yield(.loaded(activities)) // ljw handle activities.isEmpty
-      Task { @MainActor in
+//      Task { @MainActor in
+//      Task(priority: .high) { @MainActor in
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.90) { // so view can switch to content without issues
         @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
-        appCoordinator.navigate(to: .detail)
+        appCoordinator.navigate(to: .content)
       }
     }
   }

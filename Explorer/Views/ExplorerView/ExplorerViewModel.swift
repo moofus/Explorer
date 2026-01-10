@@ -28,10 +28,10 @@ class ExplorerViewModel {
     let somethingInteresting: String
     let state: String
   }
-  
+
   @ObservationIgnored
   @Injected(\.explorerSource) var source: ExplorerSource
-  
+
   var activities = [Activity]()
   private(set) var errorDescription = ""
   private(set) var errorRecoverySuggestion = ""
@@ -40,7 +40,7 @@ class ExplorerViewModel {
   private let logger = Logger(subsystem: "com.moofus.explorer", category: "ddd")
   private(set) var mkMapItem: MKMapItem?
   private var addressToLocationCache = [String: CLLocation]()
-  
+
   init() {
     print("ljw \(Date()) \(#file):\(#function):\(#line)")
     Task { await handleSource() }
@@ -49,7 +49,7 @@ class ExplorerViewModel {
 
 // MARK: - Private Methods
 extension ExplorerViewModel {
-  
+
   // Returns the coordinate of the most relevant result
   private func getDistance(from activity: AIManager.Activity) async throws -> Double {
     let activityLocation: CLLocation
@@ -73,32 +73,55 @@ extension ExplorerViewModel {
     let distanceInMiles = distanceInMeters.converted(to: UnitLength.miles)
     return distanceInMiles.value
   }
-  
+
   private func imageName(from category: String) -> String {
     return switch category {
       // Culture
       //Discover the largest Chinatown outside of Asia, filled with shops, restaurants, and cultural landmarks.
-    case "Cultural Experience": "storefront.fill" // rotate fork.knife.circle.fill
-    //Former federal prison known for its escape attempts and cinematic history.
+      //Explore one of the oldest and largest Chinatowns in North America.
+      //Chinatown is famous for its vibrant street life, delicious"
+    case "Culture/History": "chineseyuanrenminbisign.circle.fill" // storefront.fill" "fork.knife" cart.fill
+
+      //Explore the vibrant neighborhoods filled with shops, restaurants, and cultural landmarks.
+      //Chinatown San Francisco's Chinatown is one of the oldest and largest Chinatowns in North America."
+    case "Cultural Experience": "chineseyuanrenminbisign.circle.fill" // storefront.fill" "fork.knife" fork.knife.circle.fill cart.fill
+
+      //Explore the cultural hub known for the 1960s counterculture movement.
+    case "History/Culture": "house.and.flag.fill"
+
+      //Former federal prison known for its escape attempts and cinematic history.
     case "History & Culture": "lock.fill"
-    //Haight-Ashbury was the epicenter of the 1960s counterculture movement, with its iconic red-bricked streets and historic sites like the Avalon Ballroom.
-    case "History/Music": "house.and.flag.fill"
+
+      //Haight-Ashbury was the epicenter of the 1960s counterculture movement, with its iconic red-bricked streets and historic sites like the Avalon Ballroom.
+    case "History/Music": "house.and.flag.fill" // "music.note.house.fill"
+      //Explore the historic district known as the birthplace of the 1960s counterculture movement, filled with vintage shops and cafes.
+    case "Music and History": "music.note.house.fill" // music.mic
+
 
       // Culture & Arts
-    //A leading museum featuring works by modern and contemporary artists.
+      //A leading museum featuring works by modern and contemporary artists.
     case "Art": "paintpalette.fill" // rotate building.columns photo.artframe
-    //Explore vibrant murals, eclectic shops, and diverse dining options in this lively neighborhood."
+      //Explore this vibrant neighborhood known for its eclectic art scene, murals, and diverse dining options.
+      //Visit the Mission District The Mission District is home to one of the largest murals
+    case "Arts/Culture": "paintpalette.fill" // rotate building.columns photo.artframe
+
+      //Explore vibrant murals, eclectic shops, and diverse dining options in this lively neighborhood."
     case "Art & Cuisine": "paintpalette.fill" // rotate "fork.knife" fork.knife.circle.fill
 
       //Discover street art, unique shops, and vibrant cultural events in this eclectic neighborhood.
     case "Arts & Culture": "paintpalette.fill" // rotate storefront.fill
       //Discover the oldest and largest Chinatown in North America, filled with unique shops and authentic dining.
-    case "Culture & Cuisine", "Culture and Cuisine": "storefront.fill" // rotate "fork.knife" cart.fill
+    case "Culture & Cuisine", "Culture and Cuisine": "chineseyuanrenminbisign.circle.fill" // storefront.fill" "fork.knife" cart.fill
+
+      //Take a ferry to Alcatraz Island to explore the former federal prison known for its infamous inmates.
+      //Alcatraz Island Tour Alcatraz is one of the most photographed islands in the world and offers a unique glimpse into America's criminal history.
+    case "Historical": "ferry.fill"
+
       //Walk through the historic district known for its role in the 1960s counterculture movement, with vintage shops and cafes.
     case "Historical & Cultural": "bag.fill" // rotate "fork.knife", "figure.walk"
       //A preserved maritime area with historic ships and exhibits.
     case "Maritime History": "sailboat.fill" // rotate
-    //An interactive science museum perfect for families, featuring hands-on exhibits and engaging displays.
+      //An interactive science museum perfect for families, featuring hands-on exhibits and engaging displays.
     case "Museum": "building.columns.fill" // rotate "paintpalette.fill"
 
       //Take a ferry to explore the historic former prison known for its intriguing past.
@@ -107,23 +130,39 @@ extension ExplorerViewModel {
       // Culture & Arts
       //Explore this eclectic neighborhood known for its murals, cafes, and vibrant arts scene.
     case "Arts and Culture": "paintpalette.fill" // rotate "building.2.fill"
-      
+
       //    // Discover vibrant murals, eclectic shops, and a thriving food scene.
       //    case "Art and Cuisine": "fork.knife"
       //A vibrant neighborhood with a rich Chinese cultural heritage, famous for its food and shops."
     case "Cultural District": "fork.knife" // rotate storefront.fill
-      
+
+
       // Family Activities
       //Famous for its steep, winding road, it's a must-see for photography enthusiasts
     case "Architecture and Travel": "binoculars.fill" // rotate "camera.viewfinder", car.fill
       //Enjoy serene walking paths surrounded by beautiful native plants and gardens.
-    //Take a ferry or boat tour to explore this charming town across the Golden Gate Bridge.
-    case "Boat Tour": "sailboat.fill"
+      //Take a ferry or boat tour to explore this charming town across the Golden Gate Bridge.
+    case "Boat Tour": "ferry.fill"
     case "Botanical Garden": "leaf.fill" // rotate "figure.walk.motion"
-    //A must-see suspension bridge offering breathtaking views.
+      //A must-see suspension bridge offering breathtaking views.
     case "Iconic Landmark": "camera.viewfinder" // rotate "binoculars.fill"
-    //Walk down this famous crooked street with steep, winding turns.
+
+    //Experience a classic San Francisco ride on one of the iconic cable cars."
+    case "City Tour": "cablecar.fill"
+
+      //Take a ferry to Alcatraz Island to explore the historic former prison known for its infamous inmates and intriguing history.
+      //Tour Alcatraz Island Alcatraz is one of the most famous and least toured prisons in the world.
+    case "History": "ferry.fill" // "binoculars.fill" "figure.walk"
+
+      //Stroll across the world-famous suspension bridge with breathtaking views.
+      //Walk down this famous crooked street with steep, winding turns.
+    case "Iconic Views": "binoculars.fill" // rotate "camera.viewfinder"
+
     case "Landmark": "figure.walk" // rotate
+
+      //Iconic suspension bridge offering stunning views of the bay and city.
+      //Walk Across the Golden Gate Bridge The bridge is known for its Art Deco International
+    case "Landmark Views": "binoculars.fill" // "figure.walk" "camera.viewfinder"
 
       //Park is a large urban park in San Francisco, known for its beautiful gardens, museums, and cultural institutions.
     case "Park Golden Gate": "tree.fill"
@@ -135,6 +174,11 @@ extension ExplorerViewModel {
     case "Science/Education": "atom"
       //Engage with interactive exhibits and hands-on science and technology displays.
     case "Science & Education": "atom"
+
+    //Interactive museum focusing on science and human perception.
+    case "Science/Exhibit": "atom" // "building.2.fill"
+
+
       //Engage with interactive exhibits and hands-on science displays perfect for all ages.
     case "Science Museum": "atom" // rotate
       //Enjoy stunning views of the Golden Gate Bridge and the bay while walking or biking across this iconic structure.
@@ -142,15 +186,14 @@ extension ExplorerViewModel {
       //    //Engage with interactive exhibits that explore science, art, and human perception.
       //Enjoy scenic views of the San Francisco Bay and Alcatraz.
     case "Water Activities": "binoculars.fill" // rotate camera.viewfinder
-      
+
       //    case "Science and Education", "Science & Education": "atom"
       //Explore this lively waterfront area known for its seafood, shops, and sea lions lounging on Pier 39.
     case "Shopping": "storefront.fill" // rotate cart.fill
-      //    //Stroll or bike across the iconic suspension bridge offering breathtaking views of the bay and city.
-      //    case "Iconic Views": "binoculars.fill" // rotate "camera.viewfinder"
-      
+
+
       // Food & Dining
-    //Explore the vibrant waterfront with seafood restaurants and shops."
+      //Explore the vibrant waterfront with seafood restaurants and shops."
     case "Dining and Shopping": "fork.knife.circle.fill" // fork.knife "storefront.fill"
 
 
@@ -158,53 +201,65 @@ extension ExplorerViewModel {
       //Enjoy a scenic hike with breathtaking views of the Pacific Ocean and the city skyline.
     case "Hiking": "figure.hiking.circle.fill" // rotate tree.fill mountains.2.fill
       //Hike through a lush redwood forest, a natural wonder unlike any other.
+
     case "Nature and Hiking": "figure.hiking.circle.fill" // rotate tree.fill
       //Stroll along the scenic paths with stunning views of the bridge and the bay.
+
+      //Discover towering redwoods and lush forest trails in this serene national monument.
+      //Muir Woods National Monument Muir Woods is home to some of the tallest
+    case "Nature Preserve": "figure.hiking.circle.fill" // rotate tree.fill
+
     case "Outdoor Walk": "figure.hiking.circle.fill" // rotate mountains.2.fill "figure.walk"
+
       //Hike through a lush redwood forest with towering trees and breathtaking views.
     case "Nature & Hiking": "figure.hiking.circle.fill" // rotate tree.fill
+
       //This expansive area offers stunning coastal views, hiking trails, and scenic vistas along the Pacific Ocean.
-    //Hike up to Twin Peaks for panoramic views of the city and surrounding areas.    case "Outdoor Activities": "figure.hiking.circle.fill" // mountains.2.fill "tent.2.fill"
-    case "Nature and Views": "binoculars.fill"
+      //Hike up to Twin Peaks for panoramic views of the city and surrounding areas.    case "Outdoor Activities": "figure.hiking.circle.fill" // mountains.2.fill "tent.2.fill"
+    case "Nature and Views": "figure.hiking.circle.fill" // "binoculars.fill"
+
+      //Visit the historic observation tower for panoramic views of the city.
+      //Coit Tower Coit Tower is famous for its murals painted by local artists, including a famous depiction of Lady Justice.
+    case "Sightseeing": "binoculars.fill"
 
 
-      
+
       //Visit this historic observation tower for panoramic views of the city and Golden Gate Bridge.
     case "Historical Landmark": "house.and.flag.fill" // ljw switch "figure.walk"
       //Visit this Beaux-Arts structure that was originally built for the 1915 Panama-Pacific International Exposition.
     case "Historic Sites": "house.and.flag.fill" // ljw switch "figure.walk"
-      
+
       // Services & Other
-    //Experience the historic charm of San Francisco by riding one of its iconic cable cars.
+      //Experience the historic charm of San Francisco by riding one of its iconic cable cars.
     case "Iconic Ride": "cablecar.fill"
 
       //    //Experience the historic charm of San Francisco by riding one of its iconic cable cars.
-    case "Public Transit","Public Transport": "bus.fill"
-      
+    case "Public Transit","Public Transport": "cablecar.fill"
+
       // Shopping & Fashion
       //Explore this vibrant waterfront area filled with shops, restaurants, and attractions like Pier 39 and sea lions.
     case "Shopping and Dining": "storefront.fill" // rotate "fork.knife.circle.fill"  "bag.fill"
-      
+
       //A bustling waterfront area with seafood restaurants, shops, and attractions like Pier 39.
     case "Shopping & Dining": "fork.knife.circle.fill" // rotate "storefront.fill", "bag.fill" // ljw rotate dinning
       //    //District A bustling area filled with shops, restaurants, and attractions like Pier 39 and the sea lions.
       //Explore this vibrant waterfront area with shops, restaurants, and street performers.
     case "Shopping/Dining": "fork.knife" // rotate storefront.fill
-      
+
       //    case "Shopping and Dining", "Shopping & Dining": "bag.fill" // ljw rotate dinning
       //    case "Shopping and Dining District", "Shopping & Dining District":  "bag.fill" // ljw rotate dinning
-      
-      
-      
-////////////////////////////////////////////////////////////////////
+
+
+
+      ////////////////////////////////////////////////////////////////////
       // Culture & Arts
       //    case "Art Gallery", "Galleries": "photo.fill.on.rectangle.fill" // frame.3.fill
       //    case "Concert Halls": "music.note.house.fill"
-//    case "Architecture", "Geographical Landmark", "History and Culture", "Landmark", "Scenic": "mappin.circle.fill"
-//    case "Museums": "building.2.fill" // rotate "paintpalette.fill"
+      //    case "Architecture", "Geographical Landmark", "History and Culture", "Landmark", "Scenic": "mappin.circle.fill"
+      //    case "Museums": "building.2.fill" // rotate "paintpalette.fill"
     case "Performing Arts": "theatermasks"
     case "Theaters", "Theater": "theatermasks.fill"
-      
+
       // Cultural
     case "Culture", "Cultural Neighborhood": "globe"
     case "Cultural", "Cultural Landmark", "Landmarks": "building.columns.fill"
@@ -213,12 +268,12 @@ extension ExplorerViewModel {
     case "Culture and Heritage", "Culture & Heritage": "map.fill" //  map.fill + building.2.fill or theatermasks + figure.walk
     case "Cultural Tour": "map.fill" //  map.fill + building.2.fill or theatermasks + figure.walk
     case "Culture/Food", "Food & Culture": "fork.knife"
-    case "History", "Historic Landmark", "Historic Site", "Historical Site", "Island": "house.and.flag.fill"
-    case "Historical", "Historic District", "Iconic Street": "house.and.flag.fill" // ljw switch "figure.walk"
-      
+    case "Historic Landmark", "Historic Site", "Historical Site", "Island": "house.and.flag.fill"
+    case "Historic District", "Iconic Street": "house.and.flag.fill" // ljw switch "figure.walk"
+
       // Entertainment
     case "Entertainment": "popcorn.fill"
-      
+
       // Family Activities
     case "Animal Park": "pawprint.fill"
     case "Amusement Parks", "Recreation": "figure.walk" // ferris.wheel.fill
@@ -227,10 +282,10 @@ extension ExplorerViewModel {
     case "Science", "Science and Innovation", "Science & Innovation", "Science and Learning", "Science & Learning": "atom"
     case "Sightseeing Walk", "Walk": "figure.walk.motion"
     case "Zoos", "Zoo": "pawprint.fill"
-      
+
       // Food & Dining
     case "Food", "Food Tour", "Restaurants": "fork.knife.circle.fill" // fork.knife
-      
+
       // Outdoor & Nature
     case "Beaches", "Beach": "beach.umbrella.fill" // water.waves.and.sun.fill
     case "Biking": "bicycle"
@@ -243,19 +298,18 @@ extension ExplorerViewModel {
     case "Outdoor Adventure", "Outdoor Activity", "Outdoor Recreation": "figure.hiking.circle.fill" // mountains.2.fill
     case "Scenic Walk": "figure.walk"
     case "Scenic Views": "camera.viewfinder"
-    case "Sightseeing": "bus.fill"
     case "Viewpoint": "binoculars.fill"
-      
+
       // Services & Other
     case "Scenic Drive": "car.fill"
     case "Transportation": "car.fill"
-      
+
       // Shopping & Fashion
     case "Markets", "Market": "carrot.fill"
     case "Neighborhood": "bag.fill" // ljw rotate dinning
-      
-      
-      
+
+
+
       //////////////////////////////////////// ljw
       // Food & Dining
       //    case "Restaurants":
@@ -384,7 +438,7 @@ extension ExplorerViewModel {
       // "mappin.circle.fill"
     }
   }
-  
+
   private func convert(activities: [AIManager.Activity]) async -> [Activity] {
     var result = [Activity]()
     for activity in activities {
@@ -395,11 +449,11 @@ extension ExplorerViewModel {
         distance = try await getDistance(from: activity)
       } catch {
         logger.error("\(error.localizedDescription)")
-//        assertionFailure() // ljw
+        //        assertionFailure() // ljw
         distance = activity.distance
       }
       let imageName = imageName(from: activity.category)
-      
+
       result.append(
         Activity(
           address: activity.address,
@@ -418,11 +472,11 @@ extension ExplorerViewModel {
     }
     return result
   }
-  
+
   private func handleSource() async {
     for await state in source.stream {
       loading = false
-      
+
       switch state {
       case .error(let error):
         if case let .location(description, recoverySuggestion) = error {
@@ -442,9 +496,9 @@ extension ExplorerViewModel {
         print("loaded")
         self.activities = await convert(activities: activities)
         self.mkMapItem = nil
-        
+
         print("loaded activities count=\(self.activities.count) \(activities.count)")
-        
+
       case .loading(let mkMapItem):
         print("loading")
         self.mkMapItem = mkMapItem
