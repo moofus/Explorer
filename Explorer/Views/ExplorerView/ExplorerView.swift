@@ -19,8 +19,6 @@ import SwiftUI
 struct ExplorerView: View {
   typealias Activity = ExplorerViewModel.Activity
 
-  @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
-  @Injected(\.explorerSource) var source: ExplorerSource
   @Injected(\.explorerViewModel) var viewModel: ExplorerViewModel
 
   var body: some View {
@@ -29,7 +27,7 @@ struct ExplorerView: View {
     let _ = print("ljw loading=\(viewModel.loading) \(Date()) \(#file):\(#function):\(#line)")
 
     ZStack {
-      ExplorerMainView(appCoordinator: appCoordinator, source: source, viewModel: viewModel)
+      ExplorerMainView(viewModel: viewModel)
 
       if viewModel.loading {
         Label("Using Apple Intelligent", image: "sparkles")
@@ -73,12 +71,14 @@ extension ExplorerView {
   }
 
   struct ExplorerMainView: View {
-    @State private var textValue: String = ""
-    @Bindable var appCoordinator: AppCoordinator
-    let source: ExplorerSource
+    @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
+    @Injected(\.explorerSource) var source: ExplorerSource
+    @State private var searchText: String = ""
     @Bindable var viewModel: ExplorerViewModel
 
     var body: some View {
+      @Bindable var appCoordinator = appCoordinator
+
       NavigationSplitView(preferredCompactColumn: $appCoordinator.splitViewColum) {
         VStack {
           ExplorerHeaderView()
@@ -89,20 +89,20 @@ extension ExplorerView {
             }
           }
 
-          ButtonWithImage(text: "Search City, State, or Zip", textValue: $textValue, systemName: "magnifyingglass") {
-            print("pushed search value=\(textValue)")
-            //await source.searchCityStateOrZip(text: textValue)
-          }
-          .padding(.top)
-
           Spacer()
         }
+        .searchable(text: $searchText, prompt: "Search City, State, or Zip")
         .safeAreaPadding([.leading, .trailing])
+      } content: {
+        ZStack {
+          ExplorerDetailView(
+            activities: $viewModel.activities,
+            location: "City"
+          )
+          Text("Please preform a search")
+        }
       } detail: {
-        ExplorerDetailView(
-          activities: $viewModel.activities,
-          location: "City"
-        )
+        Text("DetailView")
       }
       .alert(viewModel.errorDescription, isPresented: $viewModel.haveError, presenting: viewModel) {  viewModel in
         Button("OK") {}

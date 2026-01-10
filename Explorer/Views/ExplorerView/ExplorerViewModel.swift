@@ -94,8 +94,6 @@ extension ExplorerViewModel {
     case "Arts & Culture": "paintpalette.fill" // rotate storefront.fill
       //Discover the oldest and largest Chinatown in North America, filled with unique shops and authentic dining.
     case "Culture & Cuisine", "Culture and Cuisine": "storefront.fill" // rotate "fork.knife" cart.fill
-      
-      
       //Walk through the historic district known for its role in the 1960s counterculture movement, with vintage shops and cafes.
     case "Historical & Cultural": "bag.fill" // rotate "fork.knife", "figure.walk"
       //A preserved maritime area with historic ships and exhibits.
@@ -166,8 +164,10 @@ extension ExplorerViewModel {
       //Hike through a lush redwood forest with towering trees and breathtaking views.
     case "Nature & Hiking": "figure.hiking.circle.fill" // rotate tree.fill
       //This expansive area offers stunning coastal views, hiking trails, and scenic vistas along the Pacific Ocean.
-    case "Outdoor Activities": "figure.hiking.circle.fill" // mountains.2.fill "tent.2.fill"
-      
+    //Hike up to Twin Peaks for panoramic views of the city and surrounding areas.    case "Outdoor Activities": "figure.hiking.circle.fill" // mountains.2.fill "tent.2.fill"
+    case "Nature and Views": "binoculars.fill"
+
+
       
       //Visit this historic observation tower for panoramic views of the city and Golden Gate Bridge.
     case "Historical Landmark": "house.and.flag.fill" // ljw switch "figure.walk"
@@ -389,7 +389,7 @@ extension ExplorerViewModel {
     var result = [Activity]()
     for activity in activities {
       print("category: ", activity.category, activity.description)
-      print(activity.somethingInteresting)
+      print(activity.name, activity.somethingInteresting)
       let distance: Double
       do {
         distance = try await getDistance(from: activity)
