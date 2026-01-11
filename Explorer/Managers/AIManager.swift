@@ -44,9 +44,10 @@ actor AIManager {
     }
   }
 
-  enum Response {
+  enum Message {
     case error(String)
-    case activities([Activity])
+    case loading([Activity])
+    case loaded
   }
 
 
@@ -76,6 +77,19 @@ actor AIManager {
     let description: String
     @Guide(description: "Something interesting about this place")
     let somethingInteresting: String
+
+    func lowercased() -> Activity {
+      return Activity(
+        name: name,
+        address: address,
+        city: city,
+        state: state,
+        category: category.lowercased(),
+        distance: distance,
+        description: description,
+        somethingInteresting: somethingInteresting
+      )
+    }
   }
 
   let logger = Logger(subsystem: "com.moofus.explorer", category: "AIManager")
@@ -85,11 +99,11 @@ actor AIManager {
                   
                   Always include a short description, and something interesting about the activity or place.
                   """
-  let continuation: AsyncStream<[Activity]>.Continuation
-  let stream: AsyncStream<[Activity]>
+  let continuation: AsyncStream<Message>.Continuation
+  let stream: AsyncStream<Message>
 
   init() {
-    (stream, continuation) = AsyncStream.makeStream(of: [Activity].self)
+    (stream, continuation) = AsyncStream.makeStream(of: Message.self)
   }
 }
 
@@ -113,8 +127,9 @@ extension AIManager {
             }
           }
         }
-        continuation.yield(activities)
+        continuation.yield(.loading(activities))
       }
+      continuation.yield(.loaded)
     }
     catch LanguageModelSession.GenerationError.guardrailViolation(let error) {
       print("guardrailViolation Error")
@@ -144,13 +159,13 @@ extension AIManager {
 // MARK: - Private Methods
 extension AIManager {
   private func partialToFull(activity: Activity.PartiallyGenerated) -> Activity? {
-    guard let name = activity.name,
+    guard let name = activity.name?.lowercased() ?? activity.name,
           let address = activity.address,
           let city = activity.city,
           let state = activity.state,
-          let category = activity.category,
+          let category = activity.category?.lowercased() ?? activity.category,
           let distance = activity.distance,
-          let description = activity.description,
+          let description = activity.description?.lowercased() ?? activity.description,
           let somethingInteresting = activity.somethingInteresting else {
       return nil
     }

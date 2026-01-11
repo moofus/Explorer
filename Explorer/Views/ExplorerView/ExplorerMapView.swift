@@ -11,10 +11,12 @@ import MapKit
 import SwiftUI
 
 struct ExplorerMapView: View {
+  let displayButton: Bool
   let item: MKMapItem?
   let action: (() -> ())?
 
-  init(item: MKMapItem?, action: (() -> Void)?) {
+  init(displayButton: Bool, item: MKMapItem?, action: (() -> Void)?) {
+    self.displayButton = displayButton
     self.item = item
     self.action = action
   }
@@ -30,7 +32,7 @@ struct ExplorerMapView: View {
     .clipShape(RoundedRectangle(cornerRadius: 30))
     .mapControlVisibility(.hidden)
     .overlay {
-      if item == nil {
+      if displayButton {
         FindActivitiesButton(text: "Search Current Location") {
           action?()
         }

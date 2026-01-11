@@ -41,16 +41,16 @@ extension LocationManager {
     }
   }
 
-  enum Response {
+  enum Message {
     case error(Error)
     case location(CLLocation)
   }
 }
 
 actor LocationManager {
-  let stream: AsyncStream<Response>
+  let stream: AsyncStream<Message>
 
-  private let continuation: AsyncStream<Response>.Continuation
+  private let continuation: AsyncStream<Message>.Continuation
   private(set) var count = 0
   private let logger = Logger(subsystem: "com.moofus.explorer", category: "LocationManager")
   private var maxCount = Int.max
@@ -67,7 +67,7 @@ actor LocationManager {
 
   init() {
     print("ljw \(Date()) \(#file):\(#function):\(#line)")
-    (stream, continuation) = AsyncStream.makeStream(of: Response.self)
+    (stream, continuation) = AsyncStream.makeStream(of: Message.self)
   }
 }
 

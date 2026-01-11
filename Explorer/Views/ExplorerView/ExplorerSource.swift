@@ -8,64 +8,42 @@
 import Foundation
 import FactoryKit
 import MapKit
+import os
 import SwiftUI
 
 final actor ExplorerSource {
   enum SourceError: Error {
-    case cityState(String)
     case location(description: String?, recoverySuggestion: String?)
     case unknown(String)
   }
 
-  enum State {
+  enum Message {
     case error(SourceError)
+    case badInput
     case initial
-    case loaded([AIManager.Activity])
-    case loading(MKMapItem?)
+    case loaded
+    case loading(MKMapItem?, [AIManager.Activity])
+    
   }
 
   @Injected(\.aiManager) var aiManager: AIManager
   @Injected(\.locationManager) var locationManager: LocationManager
 
-  private let continuation: AsyncStream<State>.Continuation
+  private let continuation: AsyncStream<Message>.Continuation
   private(set) var locationToSearch = CLLocation()
-  let stream: AsyncStream<State>
+  private let logger = Logger(subsystem: "com.moofus.Explorer", category: "ExplorerSorce")
+  let stream: AsyncStream<Message>
 
   init() {
     print("ljw \(Date()) \(#file):\(#function):\(#line)")
-    (stream, continuation) = AsyncStream.makeStream(of: State.self)
+    (stream, continuation) = AsyncStream.makeStream(of: Message.self)
     Task.detached { [weak self] in
       guard let self else { return }
       async let aiWait: Void = handleAIManager()
       async let locationWait: () = handleLocationManager()
       _ = await(aiWait, locationWait)
     }
-
-    Task { @MainActor in
-      @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
-
-      await monitorChanges(appCoordinator: appCoordinator)
-    }
   }
-
-  @MainActor
-  func monitorChanges(appCoordinator: AppCoordinator) async {
-    withObservationTracking {
-//      print("ljw splitViewColum = \(appCoordinator.splitViewColum)")
-//      print("ljw \(Date()) \(#file):\(#function):\(#line)")
-    } onChange: {
-      Task { @MainActor in
-//        print("ljw changed splitViewColum = \(appCoordinator.splitViewColum)")
-//        if appCoordinator.splitViewColum == .sidebar {
-//          self.continuation.yield(.initial) // to clear mapItem for the next presentation
-//        }
-
-      }
-
-//      print("ljw \(Date()) \(#file):\(#function):\(#line)")
-    }
-  }
-
 }
 
 // MARK: - Private Location Methods
@@ -79,11 +57,18 @@ extension ExplorerSource {
   }
 
   private func handleAIManager() async {
-    for await activities in aiManager.stream {
-      continuation.yield(.loaded(activities)) // ljw handle activities.isEmpty
-//      Task { @MainActor in
+    for await message in aiManager.stream {
+      switch message {
+      case .error(_):
+        fatalError()
+      case .loading(let activities):
+        continuation.yield(.loading(nil, activities)) // ljw handle activities.isEmpty
+      case .loaded:
+        continuation.yield(.loaded) // ljw handle activities.isEmpty
+      }
+      Task { @MainActor in
 //      Task(priority: .high) { @MainActor in
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.90) { // so view can switch to content without issues
+//      DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { // so view can switch to content without issues
         @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
         appCoordinator.navigate(to: .content)
       }
@@ -99,14 +84,9 @@ extension ExplorerSource {
         let mapItems = try await request.mapItems
         print("mapItems.count=\(mapItems.count)")
         if let item = mapItems.first {
-          print(item)
-          print("city=\(item.addressRepresentations?.cityName ?? "home")")
-          print("cityWithContext=\(item.addressRepresentations?.cityWithContext ?? "City, State")")
-          print("regionName=\(item.addressRepresentations?.regionName ?? "Country")")
-          print("region=\(item.addressRepresentations?.region ?? "Country")")
-          if let cityState = item.addressRepresentations?.cityWithContext {
+           if let cityState = item.addressRepresentations?.cityWithContext {
             do {
-              continuation.yield(.loading(item)) // to display on map
+              continuation.yield(.loading(item, []))
               try await aiManager.findActivities(cityState: cityState)
             } catch {
               print("ljw \(Date()) \(#file):\(#function):\(#line)")
@@ -125,6 +105,7 @@ extension ExplorerSource {
             return
           }
         } else {
+          fatalError()
           // ljw handle
         }
       } catch {
@@ -138,10 +119,10 @@ extension ExplorerSource {
   }
 
   private func handleLocationManager() async {
-    for await response in locationManager.stream {
-      print(response) // ljw add warnings for print statements
+    for await message in locationManager.stream {
+      print(message) // ljw add warnings for print statements
 
-      switch response {
+      switch message {
       case .error(let error):
         await handle(error: error)
       case .location(let location):
@@ -187,9 +168,41 @@ extension ExplorerSource {
 //    return "\(mapItem.addressRepresentations?.cityWithContext ?? "City, State")"
 //  }
 
+
+  func searchCityState(_ cityState: String) async {
+    logger.info("cityState=\(cityState)")
+    // Create the request with the address string
+    // example addressString "Oakland, CA", to verify that "Oakland, CA" exist
+    let request = MKGeocodingRequest(addressString: cityState)
+//    let usRegion = MKCoordinateRegion(
+//      center: CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795), // Approx center of US
+//      span: MKCoordinateSpan(latitudeDelta: 40, longitudeDelta: 60) // Wide span for US
+//    )
+//    request?.region = usRegion
+
+    // Execute the request
+    do {
+      let mapItem = (try await request?.mapItems.first)!
+
+//      guard let region = mapItem.addressRepresentations?.region else {
+//        print("no region")
+//        throw SourceError.cityState("no region")
+//      }
+//      guard region == "US" else {
+//        print("bad region")
+//        throw SourceError.cityState("bad region")
+//      }
+      await handle(location: mapItem.location)
+    } catch {
+      print("cityState=\(cityState)")
+      print(error.localizedDescription)
+      continuation.yield(.badInput)
+    }
+  }
+
   func searchCurrentLocation() async {
     print("ljw \(Date()) \(#file):\(#function):\(#line)")
-    continuation.yield(.loading(nil))
+    continuation.yield(.loading(nil, []))
     await locationManager.start(maxCount: 1)
   }
 }

@@ -19,6 +19,7 @@ import SwiftUI
 struct ExplorerView: View {
   typealias Activity = ExplorerViewModel.Activity
 
+  @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
   @Injected(\.explorerViewModel) var viewModel: ExplorerViewModel
 
   var body: some View {
@@ -27,9 +28,9 @@ struct ExplorerView: View {
     let _ = print("ljw loading=\(viewModel.loading) \(Date()) \(#file):\(#function):\(#line)")
 
     ZStack {
-      ExplorerMainView(viewModel: viewModel)
+      ExplorerMainView(appCoordinator: appCoordinator, viewModel: viewModel)
 
-      if viewModel.loading {
+      if viewModel.loading, appCoordinator.splitViewColum == .sidebar {
         Label("Using Apple Intelligent", image: "sparkles")
 //        ProgressView()
 //          .controlSize(.extraLarge)
@@ -71,20 +72,19 @@ extension ExplorerView {
   }
 
   struct ExplorerMainView: View {
-    @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
     @Injected(\.explorerSource) var source: ExplorerSource
+    @Bindable var appCoordinator: AppCoordinator
     @State private var searchText: String = ""
     @Bindable var viewModel: ExplorerViewModel
 
     var body: some View {
-      @Bindable var appCoordinator = appCoordinator
-
       NavigationSplitView(preferredCompactColumn: $appCoordinator.splitViewColum) {
         VStack {
           ExplorerHeaderView()
 
-          ExplorerMapView(item: viewModel.mkMapItem) {
+          ExplorerMapView(displayButton: !viewModel.isProcessing, item: viewModel.mkMapItem) {
             Task {
+              viewModel.isProcessing = true
               await source.searchCurrentLocation()
             }
           }
@@ -93,7 +93,14 @@ extension ExplorerView {
         }
         .searchable(text: $searchText, prompt: "Search City, State, or Zip")
         .onSubmit(of: .search) {
-          print("ljw search \(searchText) \(Date()) \(#file):\(#function):\(#line)")
+          if searchText.validateTwoStringsSeparatedByComma() {
+            Task {
+              viewModel.isProcessing = true
+              await source.searchCityState(searchText)
+            }
+          } else {
+            viewModel.inputError = true
+          }
         }
         .safeAreaPadding([.leading, .trailing])
       } content: {
@@ -106,6 +113,10 @@ extension ExplorerView {
         }
       } detail: {
         Text("DetailView")
+      }
+      .disabled(viewModel.isProcessing)
+      .alert("\"City, State\" is invalid!", isPresented: $viewModel.inputError) {
+        Button("OK") {}
       }
       .alert(viewModel.errorDescription, isPresented: $viewModel.haveError, presenting: viewModel) {  viewModel in
         Button("OK") {}
