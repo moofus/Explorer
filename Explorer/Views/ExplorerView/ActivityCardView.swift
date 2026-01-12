@@ -57,7 +57,7 @@ struct ActivityCardView: View {
         }
       }
 
-      Text(activity.address)
+      Text(activity.somethingInteresting)
         .font(.system(size: 12))
         .foregroundColor(.gray)
     }

@@ -45,9 +45,10 @@ actor AIManager {
   }
 
   enum Message {
+    case begin
+    case end
     case error(String)
     case loading([Activity])
-    case loaded
   }
 
 
@@ -115,8 +116,8 @@ extension AIManager {
     let session = LanguageModelSession(instructions: instructions)
     let text = "Generate a list of things to do near \(cityState)"
     do {
-      // Streaming partial generations
-      let stream = session.streamResponse(to: text, generating: Activities.self)
+      let stream = session.streamResponse(to: text, generating: Activities.self) // Streaming partial generations
+      var beginSent = false
 
       for try await partial in stream {
         var activities = [Activity]()
@@ -127,9 +128,13 @@ extension AIManager {
             }
           }
         }
+        if !beginSent {
+          continuation.yield(.begin)
+          beginSent = true
+        }
         continuation.yield(.loading(activities))
       }
-      continuation.yield(.loaded)
+      continuation.yield(.end)
     }
     catch LanguageModelSession.GenerationError.guardrailViolation(let error) {
       print("guardrailViolation Error")

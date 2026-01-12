@@ -105,7 +105,7 @@ extension ExplorerView {
         .safeAreaPadding([.leading, .trailing])
       } content: {
         ZStack {
-          Text("Please preform a search")
+//          Text("Please preform a search")
           ExplorerDetailView(
             activities: $viewModel.activities,
             location: "City"

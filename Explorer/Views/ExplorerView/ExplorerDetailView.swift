@@ -22,7 +22,6 @@ struct ExplorerDetailView: View {
           ActivityCardView(activity: activity)
         }
       }
-      .padding(16)
     }
     .background(Color(red: 0.98, green: 0.98, blue: 0.99).ignoresSafeArea())
   }

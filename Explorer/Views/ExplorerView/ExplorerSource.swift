@@ -59,18 +59,17 @@ extension ExplorerSource {
   private func handleAIManager() async {
     for await message in aiManager.stream {
       switch message {
+      case .begin:
+        Task { @MainActor in
+          @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
+          appCoordinator.navigate(to: .content)
+        }
+      case .end:
+        continuation.yield(.loaded) // ljw handle activities.isEmpty
       case .error(_):
         fatalError()
       case .loading(let activities):
         continuation.yield(.loading(nil, activities)) // ljw handle activities.isEmpty
-      case .loaded:
-        continuation.yield(.loaded) // ljw handle activities.isEmpty
-      }
-      Task { @MainActor in
-//      Task(priority: .high) { @MainActor in
-//      DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { // so view can switch to content without issues
-        @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
-        appCoordinator.navigate(to: .content)
       }
     }
   }
