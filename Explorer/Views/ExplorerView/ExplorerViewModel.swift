@@ -33,6 +33,8 @@ class ExplorerViewModel {
   @Injected(\.explorerSource) var source: ExplorerSource
 
   var activities = [Activity]()
+  private var addressToLocationCache = [String: CLLocation]()
+  private var categories = [String: [String]]()
   private(set) var errorDescription = ""
   private(set) var errorRecoverySuggestion = ""
   var haveError = false
@@ -41,15 +43,90 @@ class ExplorerViewModel {
   private(set) var loading = false
   private let logger = Logger(subsystem: "com.moofus.explorer", category: "ExplorerViewModel")
   private(set) var mkMapItem: MKMapItem?
-  private var addressToLocationCache = [String: CLLocation]()
+  private var names = [String: [String]]()
 
   init() {
+    buildNames()
+    buildCategories()
+
     Task { await handleSource() }
   }
 }
 
 // MARK: - Private Methods
 extension ExplorerViewModel {
+  private func buildCategories() {
+    categories["art"] = ["photo.artframe"]
+    categories["aquarium"] = ["fish.fill"]
+    categories["beach"] = ["beach.umbrella.fill"]
+    categories["musicals"] = ["music.note"]
+    categories["bike"] = ["bicycle"]
+    categories["biking"] = ["bicycle.circle.fill"]
+    categories["boat"] = ["ferry"]
+    categories["cable car"] = ["cablecar.fill"]
+    categories["dining"] = ["fork.knife"]
+    categories["exhibits"] = ["photo.artframe"]
+    categories["district"] = ["storefront.fill"]
+    categories["drive"] = ["car.fill"]
+    categories["education"] = ["graduationcap.fill"]
+    categories["entertainment"] = ["person.2.badge.plus.fill"]
+    categories["ferry"] = ["ferry.fill"]
+    categories["food"] = ["fork.knife.circle.fill"]
+    categories["garden"] = ["leaf.fill"]
+    categories["gardens"] = ["leaf.fill"]
+    categories["graffiti"] = ["photo.artframe"]
+    categories["hiking"] = ["figure.hiking.circle.fill"]
+    categories["historic site"] = ["building.fill"]
+    categories["iconic views"] = ["binoculars.fill"]
+    categories["landmarks"] = ["building.columns.fill"]
+    categories["lakes"] = ["water.waves"]
+    categories["murals"] = ["paintpalette.fill"]
+    categories["museum"] = ["building.fill"]
+    categories["museums"] = ["building.2.fill"]
+    categories["music"] = ["music.pages.fill","music.note.house.fill"]
+    categories["musicals"] = ["music.note"]
+    categories["nature"] = ["leaf.fill"]
+    categories["nightlife"] = ["figure.dance.circle.fill"]
+    categories["outdoor"] = ["sun.max.fill"]
+    categories["outdoor walk"] = ["sun.max.fill","figure.walk.circle.fill"]
+    categories["park"] = ["tree.fill"]
+    categories["parks"] = ["tree.fill"]
+    categories["recreation"] = ["figure.walk"]
+    categories["restaurants"] = ["fork.knife.circle.fill"]
+    categories["scenic views"] = ["binoculars.fill"]
+    categories["scenic walk"] = ["binoculars.fill","figure.walk.circle.fill"]
+    categories["science"] = ["atom"]
+    categories["shopping"] = ["storefront.fill"]
+    categories["shops"] = ["storefront.fill"]
+    categories["sightseeing"] = ["binoculars.fill"]
+    categories["stroll"] = ["figure.walk"]
+    categories["swimming"] = ["figure.open.water.swim"]
+    categories["theater"] = ["theatermasks.fill"]
+    categories["theatre"] = ["theatermasks.fill"]
+    categories["tour"] = ["figure.walk.circle.fill"]
+    categories["trails"] = ["figure.hiking.circle.fill"]
+    categories["views"] = ["binoculars.fill"]
+    categories["walking"] = ["figure.walk.motion"]
+    categories["waterfront"] = ["water.waves"]
+  }
+
+  private func buildNames() {
+    names["alcatraz"] = ["ferry", "figure.walk"]
+    names["bridge"] = ["figure.walk.circle.fill"]
+    names["cable car"] = ["cablecar.fill"]
+    names["cable cars"] = ["cablecar.fill"]
+    names["chinatown"] = ["chineseyuanrenminbisign.circle.fill","fork.knife","storefront.fill"]
+    names["coit tower"] = ["binoculars.fill"]
+    names["empire state building"] = ["binoculars.fill"]
+    names["haight-ashbury district"] = ["figure.walk.circle.fill","binoculars.fill"]
+    names["little havana"] = ["storefront.fill", "fork.knife.circle.fill" ]
+    names["museum"] = ["building.fill","figure.walk"]
+    names["lombard street"] = ["road.lanes.curved.right"]
+    names["sightseeing walk"] = ["binoculars.fill","figure.walk"]
+    names["statue of liberty"] = ["ferry.fill", "figure.walk.circle.fill"]
+    names["times square"] = ["theatermasks.fill", "storefront.fill", "person.2.badge.plus.fill"]
+    names["9/11 memorial"] = ["building.columns.fill"]
+  }
 
   // Returns the coordinate of the most relevant result
   private func getDistance(from activity: AIManager.Activity) async throws -> Double {
@@ -75,643 +152,6 @@ extension ExplorerViewModel {
     return distanceInMiles.value
   }
 
-
-// ljw
-  private func handleAquarium(_ activity: AIManager.Activity) -> [String] {
-    if activity.category.contains("aquarium") {
-      return ["fish.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleArchitecture(_ activity: AIManager.Activity) -> [String] {
-    if activity.category.contains("street") {
-      return ["building.columns.fill", "road.lanes.curved.right"]
-    }
-    if activity.category.contains("walking") {
-      return handleArchitectureWalking(activity)
-    }
-    fatalError()
-  }
-
-  private func handleArchitectureWalking(_ activity: AIManager.Activity) -> [String] {
-    if activity.category.contains("views") {
-      return ["building.columns.fill", "figure.walk", "binoculars.fill"]
-    }
-    if activity.category.contains("walking") {
-      return handleArchitectureWalking(activity)
-    }
-    fatalError()
-  }
-
-  private func handleArt(_ activity: AIManager.Activity) -> [String] {
-    if activity.category.contains("architecture") {
-      return handleArtCulture(activity)
-    }
-    if activity.category.contains("culture") {
-      return handleArtCulture(activity)
-    }
-    if activity.description.contains("museum") {
-      return ["photo.artframe", "building.columns.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleArtArchitecture(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("garden") {
-      return ["leaf.fill", "figure.walk"]
-    }
-    fatalError()
-  }
-
-  private func handleArts(_ activity: AIManager.Activity) -> [String] {
-    if activity.category.contains("nightLife") {
-      return handleArtsNightLife(activity)
-    }
-    fatalError()
-  }
-
-  private func handleBeach(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("nightlife") {
-      return ["beach.umbrella.fill", "figure.dance.circle.fill"]
-    }
-    fatalError()
-  }
-  
-  private func handleBridge(_ activity: AIManager.Activity) -> [String] {
-    if activity.name.contains("bridge") {
-      return ["binoculars.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleArtCulture(_ activity: AIManager.Activity) -> [String] {
-    if activity.name.contains("district") {
-      return ["storefront.fill", "fork.knife"]
-    }
-    if activity.description.contains("garden") {
-      return ["leaf.fill", "figure.walk"]
-    }
-    if activity.description.contains("museums") {
-      return ["photo.artframe", "building.2.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleArtsNightLife(_ activity: AIManager.Activity) -> [String] {
-    if activity.category.contains("murals") {
-      return ["photo.fill", "figure.dance.circle.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleCultural(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("chinatown") {
-      return ["chineseyuanrenminbisign.circle.fill", "storefront.fill", "fork.knife"]
-    }
-    if activity.description.contains("ferry") {
-      return ["ferry.fill", "figure.walk"]
-    }
-    if activity.description.contains("museums") {
-      return ["building.2.fill", "figure.walk"]
-    }
-    fatalError()
-  }
-
-  private func handleDriving(_ activity: AIManager.Activity) -> [String] {
-    fatalError()
-  }
-
-  private func handleEntertainment(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("musicals") || activity.name.contains("theater")  {
-      return ["theatermasks.fill", "person.2.badge.plus.fill"]
-    }
-    if activity.description.contains("theaters") || activity.description.contains("theatre") {
-      return ["theatermasks.fill", "person.2.badge.plus.fill", "figure.walk"]
-    }
-    fatalError()
-  }
-
-  private func handleFood(_ activity: AIManager.Activity) -> [String] {
-    if activity.category.contains("shopping") {
-      return ["fork.knife", "storefront.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleHistor(_ activity: AIManager.Activity) -> [String] {
-    if activity.category.contains("landmark") {
-      return handleHistorLandmark(activity)
-    }
-    if activity.category.contains("music") {
-      return ["music.pages.fill", "music.note.house.fill"]
-    }
-    if activity.category.contains("tour") {
-      return ["building.columns.fill", "figure.walk"]
-    }
-    if activity.description.contains("culture") {
-      return handleHistoryCulture(activity)
-    }
-    fatalError()
-  }
-
-  private func handleHistoryCulture(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("exhibits") {
-      return ["building.columns.fill", "photo.artframe"]
-    }
-    if activity.description.contains("walk") {
-      return ["building.columns.fill", "figure.walk"]
-    }
-    fatalError()
-  }
-
-  private func handleHistorLandmark(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("views") {
-      return ["building.columns.fill", "binoculars.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleHiking(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("views") {
-      return ["figure.hiking.circle.fill", "binoculars.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleGarden(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("garden") {
-      return ["figure.hiking.circle.fill", "binoculars.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleIconic(_ activity: AIManager.Activity) -> [String] {
-    if activity.name.contains("street") {
-      return ["road.lanes.curved.right"]
-    }
-    if activity.name.contains("views") {
-      return ["binoculars.fill"]
-    }
-    if activity.description.contains("bridge") {
-      return ["binoculars.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleLandmark(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("views") {
-      return ["binoculars.fill", "figure.walk"]
-    }
-    fatalError()
-  }
-
-  private func handleLandmarksWalk(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("views") {
-      return ["building.columns.fill", "figure.walk", "binoculars.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleMuseum(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("art") {
-      return ["building.columns.fill", "photo.artframe"]
-    }
-    if activity.description.contains("museum") {
-      return ["building.columns.fill"]
-    }
-    if activity.description.contains("science") {
-      return ["building.columns.fill", "atom"]
-    }
-    fatalError()
-  }
-
-  private func handleNeighborhood(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("theaters") {
-      return ["theatermasks.fill", "figure.walk"]
-    }
-    fatalError()
-  }
-
-  private func handleNature(_ activity: AIManager.Activity) -> [String] {
-    if activity.category.contains("garden") || activity.category.contains("gardens") {
-      return ["leaf.fill", "figure.walk"]
-    }
-    if activity.category.contains("hike") || activity.description.contains("hike") {
-      return ["leaf.fill", "figure.hiking.circle.fill"]
-    }
-    if activity.category.contains("recreation") {
-      return handleNatureRecreation(activity)
-    }
-    if activity.category.contains("walk") {
-      return ["leaf.fill", "figure.walk"]
-    }
-    if activity.description.contains("museums") {
-      return ["leaf.fill", "building.columns.fill", "figure.walk"]
-    }
-    if activity.description.contains("park") {
-      return handleNaturePark(activity)
-    }
-    if activity.description.contains("wildlife") {
-      return ["leaf.fill", "tree.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleNaturePark(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("beaches") {
-      return ["leaf.fill", "tree.fill", "beach.umbrella.fill"]
-    }
-    if activity.description.contains("garden") {
-      return ["leaf.fill", "tree.fill"]
-    }
-   if activity.description.contains("museums") {
-      return ["leaf.fill", "building.columns.fill", "figure.walk"]
-    }
-    if activity.description.contains("walking") {
-      return ["leaf.fill", "figure.walk"]
-    }
-    fatalError()
-  }
-
-  private func handleNatureRecreation(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("lakes") {
-      return ["leaf.fill", "tree.fill", "figure.walk", "water.waves"]
-    }
-    fatalError()
-  }
-
-  private func handleOutdoor(_ activity: AIManager.Activity) -> [String] {
-    if activity.category.contains("recreation") || activity.description.contains("recreation") {
-      return ["mountain.2.fill", "figure.walk"]
-    }
-     if activity.description.contains("stroll") ||
-        activity.description.contains("walking") ||
-        activity.description.contains("walk") {
-      return handleOutdoorWalk(activity)
-    }
-    if activity.description.contains("hike") {
-      return handleOutdoorHike(activity)
-    }
-    if activity.description.contains("picnic") {
-      return handleOutdoorPicnic(activity)
-    }
-    if activity.description.contains("swimming") {
-      return ["figure.open.water.swim"]
-    }
-    if activity.description.contains("views") {
-      return handleOutdoorViews(activity)
-    }
-    fatalError()
-  }
-
-  private func handleOutdoorHike(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("views") {
-      return ["figure.hiking.circle.fill", "binoculars.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleOutdoorPicnic(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("parks") {
-      return ["beach.umbrella.fill", "tree.fill", "figure.walk"]
-    }
-    fatalError()
-  }
-
-  private func handleOutdoorViews(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("trails") {
-      return ["figure.hiking.circle.fill", "binoculars.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleOutdoorWalk(_ activity: AIManager.Activity) -> [String] {
-     if activity.description.contains("bike") || activity.description.contains("biking") {
-      return handleOutdoorWalkBike(activity)
-    }
-    if activity.description.contains("parks") {
-      return ["figure.walk", "tree.fill"]
-    }
-    if activity.description.contains("views") {
-      return handleOutdoorWalkViews(activity)
-    }
-    fatalError()
-  }
-
-  private func handleOutdoorWalkBike(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("views") {
-      return ["figure.walk", "bicycle", "binoculars.fill"] // bicycle.circle.fill
-    }
-    fatalError()
-  }
-
-  private func handleOutdoorWalkViews(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("views") {
-      return ["figure.walk", "binoculars.fill"]
-    }
-    fatalError()
-  }
-
-  private func handlePark(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("gardens") {
-      return handleParkGardens(activity)
-    }
-    if activity.description.contains("lake") {
-      return ["leaf.fill", "water.waves"]
-    }
-    if activity.description.contains("museums") {
-      return handleParkMuseums(activity)
-    }
-    if activity.description.contains("park") {
-      return ["leaf.fill", "tree.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleParkGardens(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("art") {
-      return ["leaf.fill", "photo.artframe", "tree.fill"]
-    }
-    if activity.description.contains("lakes") {
-      return ["leaf.fill", "water.waves", "tree.fill"]
-    }
-    if activity.description.contains("museums") {
-      return ["leaf.fill", "building.2.fill", "tree.fill"]
-    }
-    if activity.description.contains("walking") {
-      return ["leaf.fill", "figure.walk", "tree.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleParkMuseums(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("views") {
-      return ["leaf.fill", "building.2.fill", "binoculars.fill"]
-    }
-    fatalError()
-  }
-
-  private func handlePhotography(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("drive") {
-      return ["photo.fill", "car.fill"] // photo
-    }
-    fatalError()
-  }
-
-  private func handleScenic(_ activity: AIManager.Activity) -> [String] {
-    if activity.category.contains("drive") {
-      return ["binoculars.fill", "car.fill"]
-    }
-    if activity.description.contains("views") {
-      return ["binoculars.fill", "figure.walk"]
-    }
-    if activity.category.contains("walk") {
-      return ["binoculars.fill", "figure.walk"]
-    }
-    fatalError()
-  }
-
-  private func handleScience(_ activity: AIManager.Activity) -> [String] {
-    if activity.category.contains("education") {
-      return ["atom", "graduationcap.fill"]
-    }
-    if activity.category.contains("interactive") {
-      return ["atom", "book.fill"]
-    }
-    if activity.category.contains("learning") {
-      return ["atom", "book.fill"]
-    }
-    if activity.category.contains("museum") {
-      return ["atom", "building.columns.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleShopping(_ activity: AIManager.Activity) -> [String] {
-    if activity.category.contains("dining") {
-      return ["storefront.fill", "fork.knife"]
-    }
-    if activity.description.contains("food") {
-      return ["storefront.fill", "fork.knife"]
-    }
-    if activity.description.contains("market") {
-      return ["storefront.fill", "fork.knife.circle.fill"]
-    }
-    if activity.description.contains("theaters") {
-      return ["storefront.fill", "theatermasks.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleSightseeing(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("ferry") {
-      return ["binoculars.fill", "ferry.fill"]
-    }
-    if activity.description.contains("stroll") || activity.description.contains("walk") || activity.category.contains("walk") {
-      return handleSightseeingWalk(activity)
-    }
-    if activity.description.contains("views") {
-      return ["binoculars.fill"]
-    }
-    if activity.description.contains("bridge") {
-      return ["binoculars.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleSightseeingWalk(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("bike") {
-      return ["binoculars.fill", "figure.walk", "bicycle"] // bicycle.circle.fill
-    }
-    if activity.description.contains("drive") {
-      return ["binoculars.fill", "figure.walk", "car.fill"] // bicycle.circle.fill
-    }
-    if activity.description.contains("views") {
-      return ["binoculars.fill", "figure.walk"]
-    }
-    fatalError()
-  }
-
-  private func handleTour(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("ferry") {
-      return ["ferry.fill", "figure.walk"]
-    }
-    fatalError()
-  }
-
-  private func handlePublicSpace(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("park") {
-      return handlePublicSpacePark(activity)
-    }
-    fatalError()
-  }
-
-  private func handlePublicSpacePark(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("views") {
-      return ["leaf.fill", "tree.fill",  "binoculars.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleTransportation(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("cable car") {
-      return ["cablecar.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleRecreational(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("walking") {
-      return handleRecreationalWalking(activity)
-    }
-    fatalError()
-  }
-
-  private func handleRecreationalWalking(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("lakes") {
-      return ["figure.walk", "binoculars.fill", "water.waves"]
-    }
-    if activity.description.contains("views") {
-      return ["figure.walk", "binoculars.fill"]
-    }
-    fatalError()
-  }
-
-  private func handleWalk(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("views") {
-      return handleWalkViews(activity)
-    }
-    fatalError()
-  }
-
-  private func handleWalkViews(_ activity: AIManager.Activity) -> [String] {
-    if activity.description.contains("biking") {
-      return ["figure.walk", "binoculars.fill", "bicycle"]
-    }
-    fatalError()
-  }
-
-  private func imageNames(from activity: AIManager.Activity) -> [String] {
-    print("------------------------------")
-    print(activity)
-    let activity = activity.lowercased()
-
-    if activity.name.contains("alcatraz") {
-      return ["ferry.fill", "figure.walk"]
-    }
-    if activity.name.contains("cable cars") {
-      return ["cablecar.fill"]
-    }
-    if activity.name.contains("empire state building") {
-      return ["binoculars.fill"]
-    }
-    if activity.name.contains("statue of liberty") {
-      return ["ferry.fill", "figure.walk"]
-    }
-    if activity.name.contains("times square") {
-      return ["theatermasks.fill", "storefront.fill", "person.2.badge.plus.fill" ]
-    }
-    if activity.name.contains("9/11 memorial") {
-      return ["building.columns.fill", "mappin.circle"]
-    }
-
-    if activity.category.contains("aquarium") {
-      return handleAquarium(activity)
-    }
-    if activity.category.contains("architecture") {
-      return handleArchitecture(activity)
-    }
-    if activity.category.contains("art") {
-      return handleArt(activity)
-    }
-    if activity.category.contains("arts") {
-      return handleArts(activity)
-    }
-    if activity.category.contains("beach") {
-      return handleBeach(activity)
-    }
-    if activity.category.contains("bridge") {
-      return handleBridge(activity)
-    }
-    if activity.category.contains("cultural") || activity.category.contains("culture") {
-      return handleCultural(activity)
-    }
-    if activity.category.contains("driving") {
-      return handleDriving(activity)
-    }
-    if activity.category.contains("entertainment") {
-      return handleEntertainment(activity)
-    }
-    if activity.category.contains("food") {
-      return handleFood(activity)
-    }
-    if activity.category.contains("garden") {
-      return handleHiking(activity)
-    }
-    if activity.category.contains("hiking") {
-      return handleHiking(activity)
-    }
-    if activity.category.contains("histor") {
-      return handleHistor(activity)
-    }
-    if activity.category.contains("iconic") {
-      return handleIconic(activity)
-    }
-    if activity.category.contains("landmark") || activity.category.contains("landmarks") {
-      return handleLandmark(activity)
-    }
-    if activity.category.contains("museum") {
-      return handleMuseum(activity)
-    }
-    if activity.category.contains("neighborhood") {
-      return handleNeighborhood(activity)
-    }
-    if activity.category.contains("nature") {
-      return handleNature(activity)
-    }
-    if activity.category.contains("outdoor") {
-      return handleOutdoor(activity)
-    }
-    if activity.category.contains("park") {
-      return handlePark(activity)
-    }
-    if activity.category.contains("photography") {
-      return handlePhotography(activity)
-    }
-    if activity.category.contains("public space") {
-      return handlePublicSpace(activity)
-    }
-    if activity.category.contains("public transit") {
-      return handleTransportation(activity)
-    }
-    if activity.category.contains("recreational") {
-      return handleRecreational(activity)
-    }
-    if activity.category.contains("scenic") {
-      return handleScenic(activity)
-    }
-    if activity.category.contains("science") {
-      return handleScience(activity)
-    }
-    if activity.category.contains("shopping") {
-      return handleShopping(activity)
-    }
-    if activity.category.contains("sightseeing") {
-      return handleSightseeing(activity)
-    }
-    if activity.category.contains("tour") {
-      return handleTour(activity)
-    }
-    if activity.category.contains("transportation") {
-      return handleTransportation(activity)
-    }
-    if activity.category.contains("walk") {
-      return handleWalk(activity)
-    }
-    fatalError()
-  }
-
   private func convert(activities: [AIManager.Activity]) async -> [Activity] {
     var result = [Activity]()
     for activity in activities {
@@ -720,7 +160,6 @@ extension ExplorerViewModel {
         distance = try await getDistance(from: activity)
       } catch {
         logger.error("\(error.localizedDescription)")
-        //        assertionFailure() // ljw
         distance = activity.distance
       }
       let imageName = imageNames(from: activity).first!
@@ -780,14 +219,48 @@ extension ExplorerViewModel {
       }
     }
   }
-}
-/* keys
- art      = photo.artframe
- gardens  = tree.fill
- lakes    = water.waves
- museums  = building.2.fill
- theaters = theatermasks.fill
- theatre  = theatermasks.fill
- views    = binoculars.fill
 
- */
+  private func imageNames(from activity: AIManager.Activity) -> [String] {
+    print("------------------------------")
+    let activity = activity.lowercased()
+    print(activity)
+
+    var result = process(name: activity.name)
+    if !result.isEmpty {
+      return result
+    }
+
+    result = process(input: activity.category, result: [])
+    result = process(input: activity.description, result: result)
+
+    if result.count < 1 {
+      print(activity)
+      fatalError()
+    }
+    return result
+  }
+
+  private func process(input: String, result: [String]) -> [String] {
+    var resultStrings = [String]()
+    for (key, imageStrings) in categories {
+      if input.contains(key) {
+        for imageString in imageStrings {
+          if result.contains(imageString) { continue }
+          resultStrings.append(imageString)
+        }
+      }
+    }
+    print("input=\(input) \(resultStrings)")
+    return result + resultStrings
+  }
+
+  private func process(name input: String) -> [String] {
+    for (key, imageStrings) in names {
+      if input.contains(key) {
+        print("key=\(key) \(imageStrings)")
+        return imageStrings
+      }
+    }
+    return []
+  }
+}
