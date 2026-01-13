@@ -104,15 +104,9 @@ extension ExplorerView {
         }
         .safeAreaPadding([.leading, .trailing])
       } content: {
-        ZStack {
-//          Text("Please preform a search")
-          ExplorerDetailView(
-            activities: $viewModel.activities,
-            location: "City"
-          )
-        }
+        ContentView(source: source, viewModel: viewModel, location: "City")
       } detail: {
-        Text("DetailView")
+        ExplorerDetailView(activity: viewModel.selectedActivity)
       }
       .disabled(viewModel.isProcessing)
       .alert("\"City, State\" is invalid!", isPresented: $viewModel.inputError) {

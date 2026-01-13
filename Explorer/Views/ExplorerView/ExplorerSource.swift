@@ -12,6 +12,8 @@ import os
 import SwiftUI
 
 final actor ExplorerSource {
+  typealias Activity = ExplorerViewModel.Activity
+
   enum SourceError: Error {
     case location(description: String?, recoverySuggestion: String?)
     case unknown(String)
@@ -23,7 +25,8 @@ final actor ExplorerSource {
     case initial
     case loaded
     case loading(MKMapItem?, [AIManager.Activity])
-    
+    case select(Activity)
+
   }
 
   @Injected(\.aiManager) var aiManager: AIManager
@@ -60,10 +63,7 @@ extension ExplorerSource {
     for await message in aiManager.stream {
       switch message {
       case .begin:
-        Task { @MainActor in
-          @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
-          appCoordinator.navigate(to: .content)
-        }
+        navigate(to: .content)
       case .end:
         continuation.yield(.loaded) // ljw handle activities.isEmpty
       case .error(_):
@@ -129,6 +129,13 @@ extension ExplorerSource {
       }
     }
   }
+
+  func navigate(to route: AppCoordinator.Route) {
+    Task { @MainActor in
+      @Injected(\.appCoordinator) var appCoordinator: AppCoordinator
+      appCoordinator.navigate(to: route)
+    }
+  }
 }
 
 // MARK: - Public Methods
@@ -167,6 +174,10 @@ extension ExplorerSource {
 //    return "\(mapItem.addressRepresentations?.cityWithContext ?? "City, State")"
 //  }
 
+  func select(activity: Activity) {
+    continuation.yield(.select(activity))
+    navigate(to: .detail)
+  }
 
   func searchCityState(_ cityState: String) async {
     logger.info("cityState=\(cityState)")

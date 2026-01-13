@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2AD12E272F158D2300D5AFC5 /* ExplorerDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AD12E262F158D2300D5AFC5 /* ExplorerDetailView.swift */; };
 		2AD272012F05A6A100DF89B5 /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = 2AD272002F05A6A100DF89B5 /* Factory */; };
 		2AD272032F05A6A100DF89B5 /* FactoryKit in Frameworks */ = {isa = PBXBuildFile; productRef = 2AD272022F05A6A100DF89B5 /* FactoryKit */; };
 		2AD272052F05A6A100DF89B5 /* FactoryTesting in Frameworks */ = {isa = PBXBuildFile; productRef = 2AD272042F05A6A100DF89B5 /* FactoryTesting */; };
@@ -30,6 +31,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		2AD12E262F158D2300D5AFC5 /* ExplorerDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExplorerDetailView.swift; sourceTree = "<group>"; };
 		2AD2719F2F05A30800DF89B5 /* Explorer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Explorer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2AD271AC2F05A30A00DF89B5 /* ExplorerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ExplorerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		2AD271B62F05A30A00DF89B5 /* ExplorerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ExplorerUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -88,6 +90,7 @@
 				2AD271AF2F05A30A00DF89B5 /* ExplorerTests */,
 				2AD271B92F05A30A00DF89B5 /* ExplorerUITests */,
 				2AD271A02F05A30800DF89B5 /* Products */,
+				2AD12E262F158D2300D5AFC5 /* ExplorerDetailView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -251,6 +254,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2AD12E272F158D2300D5AFC5 /* ExplorerDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
