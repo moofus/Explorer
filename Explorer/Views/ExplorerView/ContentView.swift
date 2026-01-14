@@ -9,22 +9,6 @@ import FactoryKit
 import MapKit
 import SwiftUI
 
-//struct ContentView2: View {
-//  @Binding var activities: [ExplorerViewModel.Activity]
-//  let location: String
-//
-//  var body: some View {
-//    ScrollView {
-//      VStack(spacing: 12) {
-//        ForEach(activities) { activity in
-//          ActivityCardView(activity: activity)
-//        }
-//      }
-//    }
-//    .background(Color(red: 0.98, green: 0.98, blue: 0.99).ignoresSafeArea())
-//  }
-//}
-
 struct ContentView: View {
   var source: ExplorerSource
   @Bindable var viewModel: ExplorerViewModel
@@ -34,7 +18,7 @@ struct ContentView: View {
 
   var body: some View {
     ZStack {
-      Color(red: 0.98, green: 0.98, blue: 0.99).ignoresSafeArea()
+      Color(.listBackground).ignoresSafeArea()
 
       VStack(spacing: 0) {
         // Header
@@ -110,6 +94,7 @@ struct ContentView: View {
 }
 
 #Preview("ContentView") {
+
   @Previewable @State var activities = [
     ExplorerViewModel.Activity(
       address: "address",
@@ -117,7 +102,7 @@ struct ContentView: View {
       city: "City",
       description: "description",
       distance: 1.5,
-      imageName: "house",
+      imageNames: ["house"],
       name: "name",
       rating: 1.7,
       reviews: 327,
@@ -130,7 +115,7 @@ struct ContentView: View {
       city: "City",
       description: "description",
       distance: 1.5,
-      imageName: "house",
+      imageNames: ["house"],
       name: "name",
       rating: 1.7,
       reviews: 327,
@@ -139,7 +124,10 @@ struct ContentView: View {
     )
   ]
 
-//  ContentView(activities: $activities, location: "Oakland")
+  @Injected(\.explorerSource) var source: ExplorerSource
+  @Injected(\.explorerViewModel) var viewModel: ExplorerViewModel
+
+  ContentView(source: source, viewModel: viewModel, location: "Oakland")
 }
 
 #Preview("ContentView2") {
@@ -150,7 +138,7 @@ struct ContentView: View {
       city: "City",
       description: "description",
       distance: 1.5,
-      imageName: "house",
+      imageNames: ["house"],
       name: "name",
       rating: 1.7,
       reviews: 327,
@@ -163,7 +151,7 @@ struct ContentView: View {
       city: "City",
       description: "description",
       distance: 1.5,
-      imageName: "house",
+      imageNames: ["house"],
       name: "name",
       rating: 1.7,
       reviews: 327,

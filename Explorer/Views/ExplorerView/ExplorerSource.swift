@@ -67,7 +67,7 @@ extension ExplorerSource {
       case .end:
         continuation.yield(.loaded) // ljw handle activities.isEmpty
       case .error(_):
-        fatalError()
+        assertionFailure() // ljw
       case .loading(let activities):
         continuation.yield(.loading(nil, activities)) // ljw handle activities.isEmpty
       }
@@ -104,7 +104,7 @@ extension ExplorerSource {
             return
           }
         } else {
-          fatalError()
+          assertionFailure()
           // ljw handle
         }
       } catch {

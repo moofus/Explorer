@@ -17,16 +17,21 @@ struct ActivityDetailView: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0.98, green: 0.98, blue: 0.99).ignoresSafeArea()
+            Color(.listBackground).ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 0) {
                     // Hero Image
-                    VStack {
-                      Image(systemName: activity.imageName)
-                            .font(.system(size: 80))
-                            .foregroundColor(themeColor)
+                  TabView {
+                    let _ = print("ljw imageNames.count=\(activity.imageNames.count)")
+                    ForEach(activity.imageNames, id: \.self) { imageName in
+                      let _ = print("ljw image=\(imageName)")
+                      Image(systemName: imageName)
+                        .font(.system(size: 80))
+                        .foregroundColor(themeColor)
                     }
+                  }
+                  .tabViewStyle(.page)
                     .frame(height: 250)
                     .frame(maxWidth: .infinity)
                     .background(Color(red: 1, green: 0.9, blue: 0.8))
@@ -151,4 +156,25 @@ struct InfoRow: View { // ljw
         .background(Color.white)
         .cornerRadius(12)
     }
+}
+
+
+#Preview {
+  NavigationStack {
+    ActivityDetailView(
+      activity: ExplorerViewModel.Activity(
+        address: "Sample Activity",
+        category: "123 Main St, City, ST",
+        city: "Sample City",
+        description: "Sample description",
+        distance: 2.3,
+        imageNames: ["house", "star"],
+        name: "Parks",
+        rating: 4.5,
+        reviews: 128,
+        somethingInteresting: "Something interesting about this place",
+        state: "CA"
+      )
+    )
+  }
 }

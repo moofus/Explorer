@@ -17,7 +17,7 @@ struct ActivityCardView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
       HStack(spacing: 12) {
-        Image(systemName: activity.imageName)
+        Image(systemName: activity.imageNames[0])
           .font(.system(size: 32))
           .foregroundColor(.accent)
           .frame(width: 60, height: 60)

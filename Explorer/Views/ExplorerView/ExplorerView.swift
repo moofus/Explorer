@@ -31,7 +31,7 @@ struct ExplorerView: View {
       ExplorerMainView(appCoordinator: appCoordinator, viewModel: viewModel)
 
       if viewModel.loading, appCoordinator.splitViewColum == .sidebar {
-        Label("Using Apple Intelligent", image: "sparkles")
+        Label("Using Apple Intelligent", systemImage: "sparkles")
 //        ProgressView()
 //          .controlSize(.extraLarge)
 //          .padding()
@@ -106,6 +106,7 @@ extension ExplorerView {
       } content: {
         ContentView(source: source, viewModel: viewModel, location: "City")
       } detail: {
+        let _ = print("ljw1 imageNames.count=\(viewModel.selectedActivity?.imageNames.count ?? -1)")
         ExplorerDetailView(activity: viewModel.selectedActivity)
       }
       .disabled(viewModel.isProcessing)

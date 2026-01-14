@@ -21,7 +21,7 @@ class ExplorerViewModel {
     let city: String
     let description: String
     let distance: Double
-    let imageName: String
+    let imageNames: [String]
 //    let isFavorite = false
     let name: String
     let rating: Double
@@ -35,21 +35,19 @@ class ExplorerViewModel {
 
   var activities = [Activity]()
   private var addressToLocationCache = [String: CLLocation]()
-  private var categories = [String: [String]]()
   private(set) var errorDescription = ""
   private(set) var errorRecoverySuggestion = ""
   var haveError = false
+  private var imageNames = [String: [String]]()
   var inputError = false
   var isProcessing = false
   private(set) var loading = false
   private let logger = Logger(subsystem: "com.moofus.explorer", category: "ExplorerViewModel")
   private(set) var mkMapItem: MKMapItem?
-  private var names = [String: [String]]()
   var selectedActivity: Activity?
 
   init() {
-    buildNames()
-    buildCategories()
+    buildImageNames()
 
     Task { await handleSource() }
   }
@@ -57,123 +55,121 @@ class ExplorerViewModel {
 
 // MARK: - Private Methods
 extension ExplorerViewModel {
-  private func buildCategories() {
-    categories["arcade games"] = ["gamecontroller.fill"]
-    categories["art"] = ["photo.artframe"]
-    categories["art exhibits"] = ["paintpalette.fill"]
-    categories["aquarium"] = ["fish.fill"]
-    categories["aquariums"] = ["fish.fill"]
-    categories["bakeries"] = ["birthday.cake"]
-    categories["bars"] = ["wineglass.fill"]
-    categories["beach"] = ["beach.umbrella.fill"]
-    categories["beachs"] = ["beach.umbrella.fill"]
-    categories["beauty salons"] = ["comb.fill"]
-    categories["bike"] = ["bicycle"]
-    categories["biking"] = ["bicycle.circle.fill"]
-    categories["boat"] = ["ferry"]
-    categories["bookstores"] = ["books.vertical.fill"]
-    categories["boutiques"] = ["handbag.fill"]
-    categories["bowling"] = ["figure.bowling.circle.fill"]
-    categories["cable car"] = ["cablecar.fill"]
-    categories["cafes"] = ["cup.and.saucer.fill"]
-    categories["camping"] = ["tent.2.fill"]
-    categories["children's activities"] = ["figure.child"]
-    categories["clubs"] = ["music.note.list","figure.dance.circle.fill"]
-    categories["colleges"] = ["graduationcap.fill"]
-    categories["comedy clubs"] = ["person.wave.2.fill"]
-    categories["concert halls"] = ["music.note.house.fill"]
-    categories["dance clubs"] = ["figure.socialdance.circle.fill"]
-    categories["dining"] = ["fork.knife"]
-    categories["district"] = ["storefront.fill"]
-    categories["drive"] = ["car.fill"]
-    categories["education"] = ["graduationcap.fill"]
-    categories["entertainment"] = ["popcorn.fill"]
-    categories["events"] = ["calendar.circle.fill"]
-    categories["exhibits"] = ["photo.artframe"]
-    categories["ferry"] = ["ferry.fill"]
-    categories["farmers markets"] = ["leaf.arrow.triangle.circlepath"]
-    categories["food"] = ["fork.knife.circle.fill"]
-    categories["food trucks"] = ["truck.box.fill"]
-    categories["galleries"] = ["photo.fill.on.rectangle.fill"]
-    categories["garden"] = ["leaf.fill"]
-    categories["gardens"] = ["leaf.fill"]
-    categories["golf"] = ["figure.golf"]
-    categories["graffiti"] = ["photo.artframe"]
-    categories["gyms"] = ["dumbbell.fill"]
-    categories["health clinics"] = ["cross.fill"]
-    categories["hiking"] = ["figure.hiking.circle.fill"]
-    categories["historic site"] = ["building.fill"]
-    categories["iconic views"] = ["binoculars.fill"]
-    categories["karaoke"] = ["music.mic"]
-    categories["lakes"] = ["water.waves"]
-    categories["landmarks"] = ["building.columns.fill"]
-    categories["libraries"] = ["books.vertical.fill"]
-    categories["lounges"] = ["sofa.fill"]
-    categories["malls"] = ["building.2.fill"]
-    categories["massage"] = ["carseat.right.massage.fill"]
-    categories["movies"] = ["movieclapper.fill","ticket.fill"]
-    categories["murals"] = ["paintpalette.fill"]
-    categories["museum"] = ["building.fill"]
-    categories["museums"] = ["building.2.fill"]
-    categories["music"] = ["music.pages.fill","music.note.house.fill"]
-    categories["musicals"] = ["music.note"]
-    categories["nature"] = ["leaf.fill"]
-    categories["nightlife"] = ["figure.dance.circle.fill","moon.stars.circle.fill"]
-    categories["outdoor"] = ["sun.max.fill"]
-    categories["outdoor walk"] = ["sun.max.fill","figure.walk.circle.fill"]
-    categories["park"] = ["tree"]
-    categories["parks"] = ["tree.fill"]
-    categories["photography"] = ["camera.fill"]
-    categories["pizza"] = ["fork.knife"]
-    categories["pubs"] = ["mug.fill"]
-    categories["playgrounds"] = ["figure.play"]
-    categories["recreation"] = ["figure.walk"]
-    categories["restaurants"] = ["fork.knife.circle.fill"]
-    categories["scenic views"] = ["binoculars.fill"]
-    categories["scenic walk"] = ["binoculars.fill","figure.walk.circle.fill"]
-    categories["schools"] = ["long.text.page.and.pencil"]
-    categories["science"] = ["atom"]
-    categories["shop"] = ["storefront.fill"]
-    categories["shopping"] = ["storefront.fill","bag.fill"]
-    categories["shops"] = ["storefront.fill"]
-    categories["sightseeing"] = ["binoculars.fill"]
-    categories["skateparks"] = ["skateboard.fill"]
-    categories["sports"] = ["figure.basketball"]
-    categories["stroll"] = ["figure.walk"]
-    categories["swimming"] = ["figure.open.water.swim"]
-    categories["tennis"] = ["figure.tennis.circle.fill","tennis.racket"]
-    categories["theater"] = ["theatermasks.fill"]
-    categories["theaters"] = ["theatermasks.fill"]
-    categories["theatre"] = ["theatermasks.fill"]
-    categories["theme parks"] = ["ticket.fill"]
-    categories["tour"] = ["figure.walk.circle.fill"]
-    categories["trails"] = ["figure.hiking.circle.fill"]
-    categories["travel"] = ["airplane"]
-    categories["yoga"] = ["figure.yoga.circle.fill"]
-    categories["views"] = ["binoculars.fill"]
-    categories["walking"] = ["figure.walk.motion"]
-    categories["waterfront"] = ["water.waves"]
-    categories["zoo"] = ["pawprint.fill"]
-    categories["zoos"] = ["pawprint.fill"]
-  }
-
-  private func buildNames() {
-    names["alcatraz"] = ["ferry","figure.walk"]
-    names["bridge"] = ["figure.walk.circle.fill"]
-    names["cable car"] = ["cablecar.fill"]
-    names["cable cars"] = ["cablecar.fill"]
-    names["chinatown"] = ["chineseyuanrenminbisign.circle.fill","fork.knife","storefront.fill"]
-    names["coit tower"] = ["binoculars.fill"]
-    names["empire state building"] = ["binoculars.fill"]
-    names["haight-ashbury district"] = ["figure.walk.circle.fill","binoculars.fill"]
-    names["little havana"] = ["storefront.fill","fork.knife.circle.fill" ]
-    names["museum"] = ["building.fill","figure.walk"]
-    names["lombard street"] = ["road.lanes.curved.right"]
-    names["sightseeing walk"] = ["binoculars.fill","figure.walk"]
-    names["space"] = ["moon.stars.fill","globe.americas.fill"]
-    names["statue of liberty"] = ["ferry.fill","figure.walk.circle.fill"]
-    names["times square"] = ["theatermasks.fill","storefront.fill","person.2.badge.plus.fill"]
-    names["9/11 memorial"] = ["building.columns.fill"]
+  private func buildImageNames() {
+    imageNames["alcatraz"] = ["ferry.fill","binoculars.fill","figure.walk"]
+    imageNames["arcade games"] = ["gamecontroller.fill"]
+    imageNames["art"] = ["photo.artframe"]
+    imageNames["art exhibits"] = ["paintpalette.fill"]
+    imageNames["arts"] = ["photo.artframe"]
+    imageNames["aquarium"] = ["fish.fill"]
+    imageNames["aquariums"] = ["fish.fill"]
+    imageNames["bakeries"] = ["birthday.cake"]
+    imageNames["bars"] = ["wineglass.fill"]
+    imageNames["beach"] = ["beach.umbrella.fill"]
+    imageNames["beachs"] = ["beach.umbrella.fill"]
+    imageNames["beauty salons"] = ["comb.fill"]
+    imageNames["bike"] = ["bicycle"]
+    imageNames["biking"] = ["bicycle.circle.fill"]
+    imageNames["bridge"] = ["figure.walk"]
+    imageNames["boat"] = ["ferry.fill"]
+    imageNames["bookstores"] = ["books.vertical.fill"]
+    imageNames["boutiques"] = ["handbag.fill"]
+    imageNames["bowling"] = ["figure.bowling.circle.fill"]
+    imageNames["cable car"] = ["cablecar.fill"]
+    imageNames["cable cars"] = ["cablecar.fill"]
+    imageNames["cafes"] = ["cup.and.saucer.fill"]
+    imageNames["camping"] = ["tent.2.fill"]
+    imageNames["children's activities"] = ["figure.child"]
+    imageNames["chinatown"] = ["chineseyuanrenminbisign.circle.fill","fork.knife","storefront.fill"]
+    imageNames["clubs"] = ["music.note.list","figure.dance.circle.fill"]
+    imageNames["coit tower"] = ["binoculars.fill"]
+    imageNames["colleges"] = ["graduationcap.fill"]
+    imageNames["comedy clubs"] = ["person.wave.2.fill"]
+    imageNames["concert halls"] = ["music.note.house.fill"]
+    imageNames["dance clubs"] = ["figure.socialdance.circle.fill"]
+    imageNames["dining"] = ["fork.knife"]
+    imageNames["district"] = ["storefront.fill"]
+    imageNames["drive"] = ["car.fill"]
+    imageNames["education"] = ["book.fill"]
+    imageNames["empire state building"] = ["building.columns.fill", "binoculars.fill"]
+    imageNames["entertainment"] = ["popcorn.fill"]
+    imageNames["events"] = ["calendar.circle.fill"]
+    imageNames["exhibits"] = ["photo.artframe"]
+    imageNames["ferry"] = ["ferry.fill"]
+    imageNames["farmers markets"] = ["leaf.arrow.triangle.circlepath"]
+    imageNames["food"] = ["fork.knife"]
+    imageNames["food trucks"] = ["truck.box.fill"]
+    imageNames["galleries"] = ["photo.fill.on.rectangle.fill"]
+    imageNames["garden"] = ["leaf.fill"]
+    imageNames["gardens"] = ["leaf.fill"]
+    imageNames["golf"] = ["figure.golf"]
+    imageNames["graffiti"] = ["photo.artframe"]
+    imageNames["gyms"] = ["dumbbell.fill"]
+    imageNames["haight-ashbury"] = ["figure.walk","binoculars.fill"]
+    imageNames["health clinics"] = ["cross.fill"]
+    imageNames["hiking"] = ["figure.hiking.circle.fill"]
+    imageNames["historic site"] = ["building.columns.fill"]
+    imageNames["historical site"] = ["building.columns.fill"]
+    imageNames["iconic views"] = ["binoculars.fill"]
+    imageNames["karaoke"] = ["music.mic"]
+    imageNames["lakes"] = ["water.waves"]
+    imageNames["landmarks"] = ["building.columns.fill"]
+    imageNames["libraries"] = ["books.vertical.fill"]
+    imageNames["little havana"] = ["storefront.fill","fork.knife" ]
+    imageNames["lombard street"] = ["road.lanes.curved.right"]
+    imageNames["lounges"] = ["sofa.fill"]
+    imageNames["malls"] = ["building.2.fill"]
+    imageNames["massage"] = ["carseat.right.massage.fill"]
+    imageNames["movies"] = ["movieclapper.fill","ticket.fill"]
+    imageNames["murals"] = ["paintpalette.fill"]
+    imageNames["museum"] = ["building.fill","figure.walk"]
+    imageNames["museums"] = ["building.2.fill","figure.walk"]
+    imageNames["music"] = ["music.pages.fill","music.note.house.fill"]
+    imageNames["musicals"] = ["music.note"]
+    imageNames["nature"] = ["leaf.fill"]
+    imageNames["nightlife"] = ["figure.dance.circle.fill","moon.stars.circle.fill"]
+    imageNames["observatory"] = ["building.columns.fill"]
+    imageNames["outdoor"] = ["sun.max.fill"]
+    imageNames["outdoor walk"] = ["sun.max.fill","figure.walk"]
+    imageNames["park"] = ["tree.fill"]
+    imageNames["parks"] = ["tree.fill"]
+    imageNames["photography"] = ["camera.fill"]
+    imageNames["pizza"] = ["fork.knife"]
+    imageNames["pubs"] = ["mug.fill"]
+    imageNames["playgrounds"] = ["figure.play"]
+    imageNames["recreation"] = ["figure.walk"]
+    imageNames["restaurants"] = ["fork.knife"]
+    imageNames["scenic views"] = ["binoculars.fill"]
+    imageNames["scenic walk"] = ["binoculars.fill","figure.walk"]
+    imageNames["schools"] = ["long.text.page.and.pencil"]
+    imageNames["science"] = ["atom"]
+    imageNames["shop"] = ["storefront.fill"]
+    imageNames["shopping"] = ["storefront.fill","bag.fill"]
+    imageNames["shops"] = ["storefront.fill"]
+    imageNames["sightseeing"] = ["binoculars.fill"]
+    imageNames["sightseeing walk"] = ["binoculars.fill","figure.walk"]
+    imageNames["skateparks"] = ["skateboard.fill"]
+    imageNames["space"] = ["moon.stars.fill","globe.americas.fill"]
+    imageNames["sports"] = ["figure.basketball"]
+    imageNames["statue of liberty"] = ["ferry.fill","figure.walk"]
+    imageNames["stroll"] = ["figure.walk"]
+    imageNames["swimming"] = ["figure.open.water.swim"]
+    imageNames["tennis"] = ["figure.tennis.circle.fill","tennis.racket"]
+    imageNames["theater"] = ["theatermasks.fill"]
+    imageNames["theaters"] = ["theatermasks.fill"]
+    imageNames["theatre"] = ["theatermasks.fill"]
+    imageNames["theme parks"] = ["ticket.fill"]
+    imageNames["times square"] = ["theatermasks.fill","storefront.fill","person.2.badge.plus.fill"]
+    imageNames["tour"] = ["figure.walk"]
+    imageNames["trails"] = ["figure.hiking.circle.fill"]
+    imageNames["travel"] = ["airplane"]
+    imageNames["yoga"] = ["figure.yoga.circle.fill"]
+    imageNames["views"] = ["binoculars.fill"]
+    imageNames["walking"] = ["figure.walk.motion"]
+    imageNames["waterfront"] = ["water.waves"]
+    imageNames["zoo"] = ["pawprint.fill"]
+    imageNames["zoos"] = ["pawprint.fill"]
+    imageNames["9/11 memorial"] = ["building.columns.fill"]
   }
 
   // Returns the coordinate of the most relevant result
@@ -210,7 +206,6 @@ extension ExplorerViewModel {
         logger.error("\(error.localizedDescription)")
         distance = activity.distance
       }
-      let imageName = imageNames(from: activity).first!
 
       result.append(
         Activity(
@@ -219,7 +214,7 @@ extension ExplorerViewModel {
           city: activity.city,
           description: activity.description,
           distance: distance,
-          imageName: imageName,
+          imageNames: imageNames(from: activity),
           name: activity.name,
           rating: 3.9,
           reviews: 45,
@@ -276,43 +271,29 @@ extension ExplorerViewModel {
     let activity = activity.lowercased()
     print(activity)
 
-    var result = process(name: activity.name)
-    if !result.isEmpty {
-      return result
-    }
-
-    result = process(input: activity.category, result: [])
-    result = process(input: activity.description, result: result)
+    var result = [String]()
+    result = process(input: activity.name, result: &result)
+    result = process(input: activity.category, result: &result)
+    result = process(input: activity.description, result: &result)
 
     if result.count < 1 {
       print(activity)
-      fatalError()
+      assertionFailure()
       return ["mappin.circle.fill"]
     }
     return result
   }
 
-  private func process(input: String, result: [String]) -> [String] {
-    var resultStrings = [String]()
-    for (key, imageStrings) in categories {
+  private func process(input: String, result: inout [String]) -> [String] {
+    for (key, imageStrings) in imageNames {
       if input.contains(key) {
         for imageString in imageStrings {
           if result.contains(imageString) { continue }
-          resultStrings.append(imageString)
+          result.append(imageString)
         }
       }
     }
-    print("input=\(input) \(resultStrings)")
-    return result + resultStrings
-  }
-
-  private func process(name input: String) -> [String] {
-    for (key, imageStrings) in names {
-      if input.contains(key) {
-        print("key=\(key) \(imageStrings)")
-        return imageStrings
-      }
-    }
-    return []
+    print("input=\(input) \(result)")
+    return result
   }
 }

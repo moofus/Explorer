@@ -9,29 +9,52 @@ import SwiftUI
 
 struct ExplorerDetailView: View {
   typealias Activity = ExplorerViewModel.Activity
-  
+
+  @State private var selectedIdx = 0
   let activity: Activity?
-  let themeColor = Color(red: 255/255, green: 129/255, blue: 66/255)
   @State private var isFavorite = false
-  
+  @State private var setActiveIdx = 3
+  let timedAction = TimedAction()
+
   var body: some View {
     ZStack {
-      Color(red: 0.98, green: 0.98, blue: 0.99).ignoresSafeArea()
-      
+      Color(.listBackground).ignoresSafeArea()
+
       ScrollView {
         VStack(spacing: 0) {
           // Hero Image
           VStack {
             if let activity {
-              Image(systemName: activity.imageName)
-                .font(.system(size: 80))
-                .foregroundColor(themeColor)
+              TabView(selection: $selectedIdx) {
+                let _ = print("ljw imageNames.count=\(activity.imageNames.count)")
+                ForEach(0..<activity.imageNames.count, id: \.self) { idx in
+                  let _ = print("ljw image=\(activity.imageNames[idx])")
+                  Image(systemName: activity.imageNames[idx])
+                    .font(.system(size: 80))
+                    .foregroundColor(.accent)
+                    .tag(idx)
+                }
+              }
+              .background(Color(red: 1, green: 0.9, blue: 0.8))
+              .tabViewStyle(.page)
+              .frame(height: 250)
+              .frame(maxWidth: .infinity)
+              .onAppear {
+                handleTabViewOnAppear()
+              }
+              .onChange(of: selectedIdx) {
+                handleSelectedIdxOnChange()
+              }
             }
           }
-          .frame(height: 250)
-          .frame(maxWidth: .infinity)
-          .background(Color(red: 1, green: 0.9, blue: 0.8))
-          
+
+          Button {
+            timedAction.stop()
+            print("ljw buttom pushed")
+          } label: {
+            Text("Push to stop")
+          }
+
           VStack(alignment: .leading, spacing: 20) {
             // Title and Favorite
             HStack {
@@ -62,7 +85,7 @@ struct ExplorerDetailView: View {
               Button(action: { isFavorite.toggle() }) {
                 Image(systemName: isFavorite ? "heart.fill" : "heart")
                   .font(.system(size: 24))
-                  .foregroundColor(isFavorite ? themeColor : .gray)
+                  .foregroundColor(isFavorite ? .accent : .gray)
               }
             }
             
@@ -85,7 +108,7 @@ struct ExplorerDetailView: View {
                 .font(.system(size: 16, weight: .semibold))
                 .frame(maxWidth: .infinity)
                 .padding(12)
-                .background(themeColor)
+                .background(.accent)
                 .foregroundColor(.white)
                 .cornerRadius(12)
               }
@@ -99,11 +122,11 @@ struct ExplorerDetailView: View {
                 .frame(maxWidth: .infinity)
                 .padding(12)
                 .background(Color.white)
-                .foregroundColor(themeColor)
+                .foregroundColor(.accent)
                 .cornerRadius(12)
                 .overlay(
                   RoundedRectangle(cornerRadius: 12)
-                    .stroke(themeColor, lineWidth: 1.5)
+                    .stroke(.accent, lineWidth: 1.5)
                 )
               }
             }
@@ -127,6 +150,38 @@ struct ExplorerDetailView: View {
     }
     .navigationBarTitleDisplayMode(.inline)
   }
+
+  private func handleTabViewOnAppear() {
+    if let activity {
+      print("ljw starting auto change")
+      timedAction.start(sleepTimeInSeconds: 2) {
+        withAnimation {
+          let oldSelectedIdx = selectedIdx
+          if oldSelectedIdx >= activity.imageNames.count {
+            selectedIdx = 0
+          } else {
+            selectedIdx = oldSelectedIdx + 1
+          }
+        }
+        print("selectedIdx=\(selectedIdx)")
+      }
+    }
+  }
+
+  private func handleSelectedIdxOnChange() {
+    if let activity {
+      print("timedAction.count=\(timedAction.count) \(Int(timedAction.count) % activity.imageNames.count) selectedIdx=\(selectedIdx)")
+      if Int(timedAction.count) % activity.imageNames.count != selectedIdx {
+        timedAction.stop()
+        print("ljw stopped")
+      }
+    }
+  }
+  
+  private func startRotatingImage() {
+    print("setActiveIdx=\(setActiveIdx)")
+  }
+
 }
 
 // MARK: - Info Row
@@ -134,13 +189,12 @@ struct InfoRow2: View {
   let icon: String
   let title: String
   let value: String
-  let themeColor = Color(red: 255/255, green: 129/255, blue: 66/255)
-  
+
   var body: some View {
     HStack(spacing: 12) {
       Image(systemName: icon)
         .font(.system(size: 16, weight: .semibold))
-        .foregroundColor(themeColor)
+        .foregroundColor(.accent)
         .frame(width: 24)
       
       VStack(alignment: .leading, spacing: 4) {
@@ -157,5 +211,26 @@ struct InfoRow2: View {
     .padding(12)
     .background(Color.white)
     .cornerRadius(12)
+  }
+}
+
+#Preview {
+  @Previewable @State var activity =
+  ExplorerViewModel.Activity(
+    address: "address",
+    category: "category",
+    city: "City",
+    description: "description",
+    distance: 1.5,
+    imageNames: ["house"],
+    name: "name",
+    rating: 1.7,
+    reviews: 327,
+    somethingInteresting: "somethingInteresting",
+    state: "State"
+  )
+
+  NavigationStack {
+    ExplorerDetailView(activity: activity)
   }
 }
