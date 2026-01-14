@@ -11,10 +11,12 @@ import SwiftUI
 class TimedAction {
   private var task: Task<(), Never>?
   private(set) var count = UInt.zero
-  private(set) var maxCount: UInt = 1
+  private var maxCount: UInt = 1
 
   func start(count maxCount: UInt = UInt.max, sleepTimeInSeconds: UInt = 1, action: @escaping () -> ()) {
     self.maxCount = maxCount
+    count = UInt.zero
+    
     task = Task {
       repeat {
         try? await Task.sleep(for: .seconds(sleepTimeInSeconds))

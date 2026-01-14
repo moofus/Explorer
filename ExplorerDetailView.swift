@@ -11,9 +11,11 @@ struct ExplorerDetailView: View {
   typealias Activity = ExplorerViewModel.Activity
 
   @State private var selectedIdx = 0
-  let activity: Activity?
   @State private var isFavorite = false
   @State private var setActiveIdx = 3
+  @State var autoImageSelect = true
+
+  let activity: Activity?
   let timedAction = TimedAction()
 
   var body: some View {
@@ -22,13 +24,10 @@ struct ExplorerDetailView: View {
 
       ScrollView {
         VStack(spacing: 0) {
-          // Hero Image
           VStack {
             if let activity {
               TabView(selection: $selectedIdx) {
-                let _ = print("ljw imageNames.count=\(activity.imageNames.count)")
                 ForEach(0..<activity.imageNames.count, id: \.self) { idx in
-                  let _ = print("ljw image=\(activity.imageNames[idx])")
                   Image(systemName: activity.imageNames[idx])
                     .font(.system(size: 80))
                     .foregroundColor(.accent)
@@ -48,13 +47,6 @@ struct ExplorerDetailView: View {
             }
           }
 
-          Button {
-            timedAction.stop()
-            print("ljw buttom pushed")
-          } label: {
-            Text("Push to stop")
-          }
-
           VStack(alignment: .leading, spacing: 20) {
             // Title and Favorite
             HStack {
@@ -64,7 +56,7 @@ struct ExplorerDetailView: View {
                     .font(.system(size: 24, weight: .bold))
                     .foregroundColor(.black)
                 }
-                
+
                 HStack(spacing: 12) {
                   HStack(spacing: 4) {
                     Image(systemName: "star.fill")
@@ -73,22 +65,22 @@ struct ExplorerDetailView: View {
                     Text("\(String(format: "%.1f", activity?.rating ?? 0.0))")
                       .font(.system(size: 14, weight: .semibold))
                   }
-                  
+
                   Text("(\(activity?.reviews ?? 0) reviews)")
                     .font(.system(size: 12))
                     .foregroundColor(.gray)
                 }
               }
-              
+
               Spacer()
-              
+
               Button(action: { isFavorite.toggle() }) {
                 Image(systemName: isFavorite ? "heart.fill" : "heart")
                   .font(.system(size: 24))
                   .foregroundColor(isFavorite ? .accent : .gray)
               }
             }
-            
+
             // Info Cards
             VStack(spacing: 12) {
               if let activity {
@@ -97,7 +89,7 @@ struct ExplorerDetailView: View {
                 InfoRow2(icon: "tag.fill", title: "Category", value: activity.category)
               }
             }
-            
+
             // Action Buttons
             VStack(spacing: 12) {
               Button(action: { }) {
@@ -112,7 +104,7 @@ struct ExplorerDetailView: View {
                 .foregroundColor(.white)
                 .cornerRadius(12)
               }
-              
+
               Button(action: { }) {
                 HStack {
                   Image(systemName: "map.fill")
@@ -130,14 +122,13 @@ struct ExplorerDetailView: View {
                 )
               }
             }
-            
+
             // Description
             VStack(alignment: .leading, spacing: 8) {
               Text("About")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(.black)
-              
-//              Text("Check out this amazing place in your area. Great for families, friends, and solo adventurers. Visit us to experience something new and exciting!")
+
               Text(activity?.somethingInteresting ?? "")
                 .font(.system(size: 14))
                 .foregroundColor(.gray)
@@ -152,36 +143,34 @@ struct ExplorerDetailView: View {
   }
 
   private func handleTabViewOnAppear() {
+    var starting = true
     if let activity {
-      print("ljw starting auto change")
       timedAction.start(sleepTimeInSeconds: 2) {
         withAnimation {
-          let oldSelectedIdx = selectedIdx
-          if oldSelectedIdx >= activity.imageNames.count {
-            selectedIdx = 0
+          if starting {
+            starting = false
+            selectedIdx = 1
           } else {
-            selectedIdx = oldSelectedIdx + 1
+            var tmpSelectedIdx = selectedIdx
+            tmpSelectedIdx += 1
+            if tmpSelectedIdx >= activity.imageNames.count {
+              selectedIdx = 0
+            } else {
+              selectedIdx = tmpSelectedIdx
+            }
+            autoImageSelect = true
           }
         }
-        print("selectedIdx=\(selectedIdx)")
       }
     }
   }
 
   private func handleSelectedIdxOnChange() {
-    if let activity {
-      print("timedAction.count=\(timedAction.count) \(Int(timedAction.count) % activity.imageNames.count) selectedIdx=\(selectedIdx)")
-      if Int(timedAction.count) % activity.imageNames.count != selectedIdx {
-        timedAction.stop()
-        print("ljw stopped")
-      }
+    if !autoImageSelect {
+      timedAction.stop()
     }
+    autoImageSelect = false
   }
-  
-  private func startRotatingImage() {
-    print("setActiveIdx=\(setActiveIdx)")
-  }
-
 }
 
 // MARK: - Info Row
@@ -196,7 +185,7 @@ struct InfoRow2: View {
         .font(.system(size: 16, weight: .semibold))
         .foregroundColor(.accent)
         .frame(width: 24)
-      
+
       VStack(alignment: .leading, spacing: 4) {
         Text(title)
           .font(.system(size: 12, weight: .medium))
@@ -205,7 +194,7 @@ struct InfoRow2: View {
           .font(.system(size: 14, weight: .semibold))
           .foregroundColor(.black)
       }
-      
+
       Spacer()
     }
     .padding(12)
